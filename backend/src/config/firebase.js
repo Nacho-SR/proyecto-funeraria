@@ -5,6 +5,10 @@ const serviceAccountFromEnv = env.FIREBASE_SERVICE_ACCOUNT_JSON
   ? JSON.parse(env.FIREBASE_SERVICE_ACCOUNT_JSON)
   : null;
 
+if (serviceAccountFromEnv?.private_key) {
+  serviceAccountFromEnv.private_key = serviceAccountFromEnv.private_key.replace(/\\n/g, "\n");
+}
+
 if (!admin.apps.length) {
   if (serviceAccountFromEnv) {
     admin.initializeApp({
