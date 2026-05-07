@@ -23,7 +23,16 @@ const routes = [
     name: 'register',
     component: RegisterView,
   },
-
+  {
+  path: '/alta-cliente',
+  name: 'alta-cliente',
+  component: () => import('../views/AltaClienteView.vue')
+},
+{
+  path: '/alta-paquete',
+  name: 'alta-paquete',
+  component: () => import('../views/AltaPaqueteView.vue')
+},
 ]
 
 const router = createRouter({
