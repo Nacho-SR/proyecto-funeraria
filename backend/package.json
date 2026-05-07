@@ -1,5 +1,11 @@
 {
-  "type": "module",
+  "name": "backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
@@ -9,5 +15,8 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }
