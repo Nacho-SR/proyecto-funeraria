@@ -1,32 +1,40 @@
-import { db } from "../config/firebase.js";
-import { registrarCliente } from "./administrativos.repo.js";
+import bcrypt from 'bcrypt'
+import { admin } from '../../config/firebase.js'
+import { ApiError } from '../../shared/utils/apiError.js'
+import { administrativosRepository } from './administrativos.repository.js'
 
-/**
- * Registra un nuevo cliente en la colección 'clientes'
- * @param {Object} datosCliente - Objeto con la información del formulario
- */
-export const registrarCliente = async (datosCliente) => {
+export class AdministrativosService {
+  constructor () {
+    this.repository = administrativosRepository
+  }
 
-    const clientesRef = collection(db, "clientes");
+  sanitizeUsuario (usuario) {
+    const { password, ...safe } = usuario
+    return safe
+  }
 
-    // Estructura basada en tu diagrama de base de datos
-    const nuevoCliente = {
-      nombre: datosCliente.nombre,
-      apaterno: datosCliente.apaterno,
-      amaterno: datosCliente.amaterno,
-      telefono: datosCliente.telefono,
-      email: datosCliente.email,
-      calle: datosCliente.calle,
-      colonia: datosCliente.colonia,
-      numCasa: datosCliente.numCasa,
-      usuarioID: datosCliente.usuarioID, 
-      fechaCreacion: serverTimestamp(),  
-      actualizadoPor: datosCliente.usuarioID,
-      fechaActualizacion: serverTimestamp()
-    };
+  nombreCompleto ({ nombre, apaterno, amaterno }) {
+    return `${nombre} ${apaterno} ${amaterno}`.trim()
+  }
 
-    const docRef = await registrarCliente(nuevoCliente);
-    
-    return { success: true, id: docRef.id };
+  async crearUsuario(data) {
+    if (await this.repo.findUserByEmail(data.email)) {
+      throw new ApiError(409, 'Usuario ya existe')
+    }
 
-};
+    const passwordHash = await bcrypt.hash(data.password, 10)
+
+    const nuevo = {
+      ...data,
+      passwordHash,
+      activo: data.activo ?? true,
+      fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+    }
+
+    delete nuevo.password
+
+    const created = await this.repo.crearUsuario(nuevo)
+    return this.sanitize(created)
+  }
+}

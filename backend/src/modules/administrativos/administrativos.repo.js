@@ -1,30 +1,20 @@
 /*
   * Módulo de administrativos - Repositorio
 */
+import { db } from '../../config/firebase.js'
 
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+export class AdministrativosRepository {
 
-export const registrarCliente = async (datosCliente) => {
-  try {
-    const clientesRef = collection(db, "clientes");
-    const nuevoCliente = {
-      nombre: datosCliente.nombre,
-      apaterno: datosCliente.apaterno,
-      amaterno: datosCliente.amaterno,
-      telefono: datosCliente.telefono,
-      email: datosCliente.email,
-      calle: datosCliente.calle,
-      colonia: datosCliente.colonia,
-      numCasa: datosCliente.numCasa,
-      usuarioID: datosCliente.usuarioID,
-      fechaCreacion: serverTimestamp(),
-      actualizadoPor: datosCliente.usuarioID,
-      fechaActualizacion: serverTimestamp()
-    };
-    const docRef = await addDoc(clientesRef, nuevoCliente);
-    return { success: true, id: docRef.id };
-  } catch (error) {
-    console.error("Error en API alta clientes:", error);
-    return { success: false, error: error.message };
+
+  async findUserByEmail(email) {
+    const usua = await db.collection("usuarios").where('email', '==', email).limit(1).get()
+    if (usua.empty) return null
+    return { id: usua.docs[0].id, ...usua.docs[0].data() }
   }
-};
+
+  async crearUsuario(data) {
+    const docRef = await db.collection("usuarios").doc()
+    const doc = await docRef.set(data)
+    return { id: doc.id, ...doc.data() }
+  }
+}
