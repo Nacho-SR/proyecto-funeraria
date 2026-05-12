@@ -2,11 +2,17 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
+import api from '@/services/api'
 
 const router = useRouter()
-const { login, esAdmin } = useAuth()
+const { login } = useAuth()
 
-const form = reactive({ correo: '', password: '' })
+const form = reactive({
+  correo: '',
+  password: '',
+  rol: 'admin',
+})
+
 const error = ref('')
 const cargando = ref(false)
 
@@ -14,27 +20,24 @@ async function iniciarSesion() {
   error.value = ''
   cargando.value = true
   try {
-    // TODO: reemplazar con llamada real a la API
-    // const { data } = await api.post('/auth/login', form)
-    // login(data.usuario, data.token)
+    const { data } = await api.post('/auth/login', {
+      email: form.correo,
+      password: form.password,
+      role: form.rol,
+    })
 
-    // Demo: simula login según correo
-    const esAdminDemo = form.correo.includes('admin')
-    const usuarioDemo = {
-      nombre: esAdminDemo ? 'Administrador' : 'Juan López',
-      correo: form.correo,
-      rol: esAdminDemo ? 'admin' : 'usuario',
-    }
-    login(usuarioDemo, 'demo-token-123')
+    login(
+      { nombre: data.email, correo: data.email, rol: data.role },
+      data.token
+    )
 
-    // Redirigir según rol
-    if (esAdmin.value) {
+    if (data.role === 'admin') {
       router.push({ name: 'dashboard-admin' })
     } else {
       router.push({ name: 'dashboard-usuario' })
     }
-  } catch {
-    error.value = 'Correo o contraseña incorrectos.'
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Correo, contraseña o rol incorrectos.'
   } finally {
     cargando.value = false
   }
@@ -49,23 +52,44 @@ async function iniciarSesion() {
       <div v-if="error" class="alert alert-danger">{{ error }}</div>
 
       <form @submit.prevent="iniciarSesion">
+
         <div class="mb-3">
           <label class="form-label">Correo electrónico</label>
-          <input v-model="form.correo" type="email" class="form-control" placeholder="ejemplo@correo.com" required />
+          <input
+            v-model="form.correo"
+            type="email"
+            class="form-control"
+            placeholder="ejemplo@correo.com"
+            required
+          />
         </div>
-        <div class="mb-4">
+
+        <div class="mb-3">
           <label class="form-label">Contraseña</label>
-          <input v-model="form.password" type="password" class="form-control" placeholder="••••••••" required />
+          <input
+            v-model="form.password"
+            type="password"
+            class="form-control"
+            placeholder="••••••••"
+            required
+          />
         </div>
+
+        <div class="mb-4">
+          <label class="form-label">Rol</label>
+          <select v-model="form.rol" class="form-control">
+            <option value="admin">Administrador</option>
+            <option value="cobrador">Cobrador</option>
+            <option value="cliente">Cliente</option>
+          </select>
+        </div>
+
         <button class="btn btn-custom w-100" :disabled="cargando">
           <span v-if="cargando" class="spinner-border spinner-border-sm me-2"></span>
           {{ cargando ? 'Entrando…' : 'Entrar' }}
         </button>
-      </form>
 
-      <p class="text-center mt-3 small text-muted">
-        Demo: usa <strong>admin@...</strong> para rol administrador,<br>cualquier otro correo para usuario.
-      </p>
+      </form>
     </div>
   </div>
 </template>
