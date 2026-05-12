@@ -13,6 +13,9 @@ const CreateAdminSchema = z.object({
 router.post('/create', async (req, res, next) => {
   try {
     const masterKey = req.header('x-master-key')
+    console.log('masterKey recibido:', masterKey)
+    console.log('masterKey esperado:', env.MASTER_ADMIN_KEY)
+
     if (!masterKey || masterKey !== env.MASTER_ADMIN_KEY) {
       return res.status(401).json({ message: 'No autorizado' })
     }
