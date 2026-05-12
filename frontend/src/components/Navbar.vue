@@ -56,6 +56,7 @@ onUnmounted(() => document.removeEventListener('click', clickFuera))
             <router-link class="nav-link text-white" to="/" @click="cerrarTodo">Inicio</router-link>
           </li>
 
+          <!-- Admin -->
           <template v-if="isAutenticado && esAdmin">
             <li class="nav-item">
               <router-link class="nav-link text-white" to="/dashboard-admin" @click="cerrarTodo">Panel admin</router-link>
@@ -74,20 +75,16 @@ onUnmounted(() => document.removeEventListener('click', clickFuera))
             </li>
           </template>
 
+          <!-- Cliente / Cobrador: solo ven sus servicios -->
           <template v-else-if="isAutenticado && !esAdmin">
             <li class="nav-item">
-              <router-link class="nav-link text-white" to="/dashboard-usuario" @click="cerrarTodo">Mi panel</router-link>
-            </li>
-            <li class="nav-item">
-              <router-link class="nav-link text-white" to="/alta-paquete" @click="cerrarTodo">Paquetes</router-link>
-            </li>
-            <li class="nav-item">
-              <router-link class="nav-link text-white" to="/alta-servicio" @click="cerrarTodo">Servicios</router-link>
+              <router-link class="nav-link text-white" to="/dashboard-usuario" @click="cerrarTodo">Servicios</router-link>
             </li>
           </template>
         </ul>
 
         <ul class="navbar-nav ms-auto align-items-center">
+          <!-- Sin sesión -->
           <template v-if="!isAutenticado">
             <li class="nav-item">
               <router-link class="nav-link text-white" to="/login" @click="cerrarTodo">Iniciar Sesión</router-link>
@@ -97,6 +94,7 @@ onUnmounted(() => document.removeEventListener('click', clickFuera))
             </li>
           </template>
 
+          <!-- Con sesión: menú perfil -->
           <li v-else class="nav-item navbar-perfil position-relative">
             <button class="btn-tres-puntos" @click.stop="togglePerfil" title="Opciones de usuario">
               <div class="avatar-mini">{{ (usuario?.nombre?.[0] || 'U').toUpperCase() }}</div>
