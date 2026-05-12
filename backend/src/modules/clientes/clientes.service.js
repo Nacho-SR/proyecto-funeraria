@@ -8,14 +8,10 @@ export class ClientesService {
     this.repo = new ClientesRepository()
   }
 
-  nombreCompleto ({ nombre, apaterno, amaterno }) {
-    return `${nombre} ${apaterno} ${amaterno}`.trim()
-  }
-
   async crearNuevoBeneficiario(data) {
     console.log('Creando nuevo beneficiario con data:', data)
     console.log('Validando si el beneficiario ya existe con nombre:', data.beneficiario.nombre)
-    if (await this.repo.findUserByEmail(data.usuario.email)) {
+    if (await this.repo.findUserByEmail(data.beneficiario.nombre)) {
       throw new ApiError(409, 'El beneficiario ya existe')
     }
 
