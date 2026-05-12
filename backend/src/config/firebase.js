@@ -1,25 +1,15 @@
-const admin = require("firebase-admin");
-const { env } = require("./env");
-
-const serviceAccountFromEnv = env.FIREBASE_SERVICE_ACCOUNT_JSON
-  ? JSON.parse(env.FIREBASE_SERVICE_ACCOUNT_JSON)
-  : null;
+import admin from 'firebase-admin'
+import { env } from './env.js'
 
 if (!admin.apps.length) {
-  if (serviceAccountFromEnv) {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccountFromEnv),
-    });
-  } else {
-    admin.initializeApp({
-      credential: admin.credential.applicationDefault(),
-    });
-  }
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: env.FIREBASE_PROJECT_ID,
+      clientEmail: env.FIREBASE_CLIENT_EMAIL,
+      privateKey: env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+    })
+  })
 }
 
-const db = admin.firestore();
-
-module.exports = {
-  admin,
-  db,
-};
+export const db = admin.firestore()
+export { admin }

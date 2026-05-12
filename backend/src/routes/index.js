@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import administrativosRoutes from '../modules/administrativos/administrativos.routes.js'
 
 const routes = Router()
 
@@ -9,5 +10,6 @@ routes.get('/health', (_, res) => {
   })
 })
 
+routes.use('/administrativos', administrativosRoutes)
 
 export default routes

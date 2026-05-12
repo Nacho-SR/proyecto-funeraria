@@ -1,16 +1,15 @@
 /*
- Controlador para la gestión de administrativos, incluyendo el registro de clientes.
+  Controlador para la gestión de administrativos, incluyendo el registro de usuarios.
 */
 import { createClientesSchema } from '../clientes/clientes.schema.js'
-import { createUsuarioSchema } from './asignaciones.schema.js'
+import { nuevoClienteSchema } from './asignaciones.schema.js'
 import { AdministrativosService } from './administrativos.service.js'
 import { ApiError } from '../../shared/utils/apiError.js'
 
 const service = new AdministrativosService()
 
-export async function altaCliente (req, res) {
-  const { error, value } = createClientesSchema.safeParse(req.body)
-  if (error) {
-    throw new ApiError(400, 'Datos de cliente inválidos', error.errors)
-  }
+export const crearCliente = async (req, res) => {
+  const doc = nuevoClienteSchema.parse(req.body)
+  const created = await service.crearNuevoCliente(doc)
+  res.status(201).json(created)
 }

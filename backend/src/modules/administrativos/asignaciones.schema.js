@@ -1,17 +1,23 @@
 import { z } from 'zod'
 
-export const createUsuarioSchema = z.object({
+export const usuarioSchema = z.object({
   nombre: z.string().min(3),
   apaterno: z.string().min(3),
   amaterno: z.string().min(3),
   email: z.string().email(),
   password: z.string().min(6),
-  rol: z.enum(['cliente', 'cobrador']),
-  activo: z.boolean().default(true),
-  creado_por: z.string().optional(),
-  fecha_creacion: z.date().default(() => new Date()),
-  modificado_por: z.string().optional(),
-  fecha_modificacion: z.date().optional()
+})
+
+export const clienteSchema = z.object({
+  telefono: z.string().min(7),
+  calle: z.string().min(3),
+  colonia: z.string().min(3),
+  num_casa: z.string().min(1)
+})
+
+export const nuevoClienteSchema = z.object({
+  usuario: usuarioSchema,
+  cliente: clienteSchema
 })
 
 export const createAsignacionCobroSchema = z.object({

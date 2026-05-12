@@ -9,11 +9,7 @@ import * as Ctrl from './administrativos.controller.js'
 const router = Router()
 
 // Todas las req usan JWT
-router.use(authenticate)
-router.post('/', asyncHandler(Ctrl.create))
-router.get('/', asyncHandler(Ctrl.getAll))
-router.patch('/:id', asyncHandler(Ctrl.update))
-router.delete('/:id', asyncHandler(Ctrl.remove))
-router.get('/usuario/:usuario', asyncHandler(Ctrl.getByUsuario))
+//router.use(authenticate)
+router.post('/alta-cliente', asyncHandler(Ctrl.crearCliente))
 
 export default router
