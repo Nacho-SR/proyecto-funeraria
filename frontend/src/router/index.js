@@ -10,6 +10,14 @@ const routes = [
   { path: '/login', name: 'login', component: LoginView },
   { path: '/register', name: 'register', component: RegisterView },
 
+  // Completar perfil (primer inicio de sesion)
+  {
+    path: '/completar-perfil',
+    name: 'completar-perfil',
+    component: () => import('../views/CompletarPerfilView.vue'),
+    meta: { requiresAuth: true },
+  },
+
   // Dashboards por rol
   {
     path: '/dashboard-admin',
@@ -29,17 +37,13 @@ const routes = [
 
   // Altas (admin)
   { path: '/alta-cliente', name: 'alta-cliente', component: () => import('../views/AltaClienteView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
-  { path: '/alta-paquete', name: 'alta-paquete', component: () => import('../views/AltaPaqueteView.vue'), meta: { requiresAuth: true } },
+  { path: '/alta-paquete', name: 'alta-paquete', component: () => import('../views/AltaPaqueteView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
 
   // Bajas logicas (admin)
   { path: '/baja-cliente', name: 'baja-cliente', component: () => import('../views/BajaClienteView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/baja-cobrador', name: 'baja-cobrador', component: () => import('../views/BajaCobradorView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/baja-contrato', name: 'baja-contrato', component: () => import('../views/BajaContratoView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/baja-servicio', name: 'baja-servicio', component: () => import('../views/BajaServicioView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
-
-  // Usuario normal
-  { path: '/alta-servicio', name: 'alta-servicio', component: () => import('../views/BajaServicioView.vue'), meta: { requiresAuth: true } },
-  { path: '/mis-contratos', name: 'mis-contratos', component: () => import('../views/BajaContratoView.vue'), meta: { requiresAuth: true } },
 
   // 404
   { path: '/:pathMatch(.*)*', redirect: '/' },
@@ -61,6 +65,18 @@ router.beforeEach((to) => {
 
   if (to.meta.rol === 'admin' && usuario?.rol !== 'admin') {
     return token ? { name: 'dashboard-usuario' } : { name: 'login' }
+  }
+
+  // Si el usuario no es admin y no ha completado su perfil, redirige a completar perfil
+  if (
+    token &&
+    usuario?.rol !== 'admin' &&
+    !usuario?.perfilCompleto &&
+    to.name !== 'completar-perfil' &&
+    to.name !== 'login' &&
+    to.name !== 'home'
+  ) {
+    return { name: 'completar-perfil' }
   }
 })
 
