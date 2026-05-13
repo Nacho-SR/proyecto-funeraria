@@ -41,4 +41,10 @@ export class AdministrativosRepository {
     await cobrador.set(data)
     return { id: cobrador.id, ...data }
   }
+
+  async editarCobrador(data) {
+    const cobrador = await db.collection("cobradores").doc()
+    await cobrador.set(data)
+    return { ...data }
+  }
 }

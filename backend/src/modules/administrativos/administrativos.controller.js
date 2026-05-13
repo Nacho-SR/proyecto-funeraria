@@ -26,3 +26,9 @@ export const editarCliente = async (req, res) => {
   const updated = await service.editarCliente(doc)
   res.status(200).json(updated)
 }
+
+export const editarCobrador = async (req, res) => {
+  const doc = editarCobradorSchema.parse(req.body)
+  const updated = await service.editarCobrador(doc)
+  res.status(200).json(updated)
+}

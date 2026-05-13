@@ -13,6 +13,6 @@ const router = Router()
 router.post('/alta-cliente', asyncHandler(Ctrl.crearCliente))
 router.post('/editar-cliente', asyncHandler(Ctrl.editarCliente))
 router.post('/alta-cobrador', asyncHandler(Ctrl.crearCobrador))
-
+router.post('/editar-cobrador', asyncHandler(Ctrl.editarCobrador))
 
 export default router

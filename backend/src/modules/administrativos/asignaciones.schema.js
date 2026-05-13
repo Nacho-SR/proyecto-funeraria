@@ -36,6 +36,11 @@ export const nuevoCobradorSchema = z.object({
   cobrador: cobradorSchema
 })
 
+export const editarCobradorSchema = z.object({
+  usuario: usuarioSchema,
+  cobrador: cobradorSchema
+})
+
 export const createAsignacionCobroSchema = z.object({
   cobradorID: z.string(),
   clientes: z.array(z.object({
