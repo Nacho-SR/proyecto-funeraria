@@ -193,7 +193,7 @@ function cancelar() {
       <button type="button" class="btn btn-outline-secondary" @click="cancelar" :disabled="enviando">
         Cancelar
       </button>
-      <button type="submit" class="btn btn-primary" :disabled="enviando">
+      <button type="submit" class="btn btn-custom" :disabled="enviando">
         <span v-if="enviando" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
         {{ enviando ? 'Guardando...' : 'Guardar cliente' }}
       </button>
