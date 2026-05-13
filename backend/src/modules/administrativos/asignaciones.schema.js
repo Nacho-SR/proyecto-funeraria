@@ -15,9 +15,20 @@ export const clienteSchema = z.object({
   num_casa: z.string().min(1)
 })
 
+export const cobradorSchema = z.object({
+  direccion: z.string.min(4),
+  nombre: z.string.min(3),
+  telefono: z.string.min(7),
+})
+
 export const nuevoClienteSchema = z.object({
   usuario: usuarioSchema,
   cliente: clienteSchema
+})
+
+export const nuevoCobradorSchema = z.object({
+  usuario: usuarioSchema,
+  cobrador: cobradorSchema
 })
 
 export const createAsignacionCobroSchema = z.object({

@@ -47,4 +47,35 @@ export class AdministrativosService {
     const infoCliente = await this.repo.crearCliente(cliente)
     return { ...this.sanitizeUsuario(nuevoUsuario), ...infoCliente }
   }
+
+  async crearNuevoCobrador(data) {
+    console.log('Creando nuevo cobrador con datos: ', data)
+    console.log('Validando si el usuario ya existe con email:', data.usuario.email)
+    if (await this.repo.findUserByEmail(data.usuario.email)) {
+      throw new ApiError(409, 'Usuario ya existe')
+    }
+
+    const passwordHash = await bcrypt.hash(data.usuario.password, 10)
+
+    const usuario = {
+      ...data.usuario,
+      passwordHash,
+      rol: 'cobrador',
+      activo: data.activo ?? true,
+      fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+    }
+    delete usuario.password
+
+    const cobrador = {
+      ...data.cobrador,
+      activo: data.activo ?? true,
+      fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+    }
+    const nuevoUsuario = await this.repo.crearUsuario(usuario)
+    const infoCobrador = await this.repo.crearCobrador(cobrador)
+    return { ...this.sanitizeUsuario(nuevoUsuario), ...infoCobrador }
+  }
+  
 }
