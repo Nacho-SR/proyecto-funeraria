@@ -12,4 +12,7 @@ const router = Router()
 //router.use(authenticate)
 router.post('/alta-cliente', asyncHandler(Ctrl.crearCliente))
 
+router.post('/alta-cobrador', asyncHandler(Ctrl.crearCobrador))
+
+
 export default router
