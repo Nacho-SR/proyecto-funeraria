@@ -35,8 +35,23 @@ async function guardar() {
 
   enviando.value = true
   try {
-    const { data } = await clienteService.crear(form)
-    mensajeExito.value = `Cliente "${data.nombre}" registrado correctamente`
+    const payload = {
+      usuario: {
+        nombre: form.nombre,
+        apaterno: form.apaterno,
+        amaterno: form.amaterno,
+        email: form.email,
+        password: form.telefono
+      },
+      cliente: {
+        telefono: form.telefono,
+        calle: form.calle,
+        colonia: form.colonia,
+        num_casa: form.numCasa
+      }
+    }
+    const { data } = await clienteService.crear(payload)
+    mensajeExito.value = `Cliente registrado correctamente`
     emit('guardado', data)
     limpiar()
   } catch (err) {
