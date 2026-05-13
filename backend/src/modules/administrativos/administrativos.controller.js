@@ -3,6 +3,7 @@
 */
 import { createClientesSchema } from '../clientes/clientes.schema.js'
 import { nuevoClienteSchema, nuevoCobradorSchema } from './asignaciones.schema.js'
+import { createCobradoresSchema } from '../cobradores/cobradores.schema.js'
 import { AdministrativosService } from './administrativos.service.js'
 import { ApiError } from '../../shared/utils/apiError.js'
 
