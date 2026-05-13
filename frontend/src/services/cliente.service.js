@@ -1,21 +1,21 @@
 import api from './api'
 
-const RESOURCE = '/clientes'
+const RESOURCE = '/administrativos/alta-cliente'
 
 export const clienteService = {
   listar() {
-    return api.get(RESOURCE)
+    return api.get('/clientes')
   },
   obtener(id) {
-    return api.get(`${RESOURCE}/${id}`)
+    return api.get(`/clientes/${id}`)
   },
   crear(payload) {
     return api.post(RESOURCE, payload)
   },
   actualizar(id, payload) {
-    return api.put(`${RESOURCE}/${id}`, payload)
+    return api.put(`/clientes/${id}`, payload)
   },
   eliminar(id) {
-    return api.delete(`${RESOURCE}/${id}`)
+    return api.delete(`/clientes/${id}`)
   },
 }
