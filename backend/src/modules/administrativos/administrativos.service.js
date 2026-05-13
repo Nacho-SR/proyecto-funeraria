@@ -77,5 +77,26 @@ export class AdministrativosService {
     const infoCobrador = await this.repo.crearCobrador(cobrador)
     return { ...this.sanitizeUsuario(nuevoUsuario), ...infoCobrador }
   }
-  
+
+  async editarCliente(data) {
+    const passwordHash = await bcrypt.hash(data.usuario.password, 10)
+
+    const usuario = {
+      ...data.usuario,
+      passwordHash,
+      activo: data.activo ?? true,
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+    }
+    delete usuario.password
+
+    const cliente = {
+      ...data.cliente,
+      activo: data.activo ?? true,
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+    }
+
+    const usuarioEditado = await this.repo.editarUsuario(usuario)
+    const editCliente = await this.repo.editarCliente(cliente)
+    return { ...this.sanitizeUsuario(usuarioEditado), ...editCliente }
+  }
 }

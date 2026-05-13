@@ -11,7 +11,7 @@ const router = Router()
 // Todas las req usan JWT
 //router.use(authenticate)
 router.post('/alta-cliente', asyncHandler(Ctrl.crearCliente))
-
+router.post('/editar-cliente', asyncHandler(Ctrl.editarCliente))
 router.post('/alta-cobrador', asyncHandler(Ctrl.crearCobrador))
 
 

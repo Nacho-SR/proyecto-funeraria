@@ -26,6 +26,11 @@ export const nuevoClienteSchema = z.object({
   cliente: clienteSchema
 })
 
+export const editarClienteSchema = z.object({
+  usuario: usuarioSchema,
+  cliente: clienteSchema
+})
+
 export const nuevoCobradorSchema = z.object({
   usuario: usuarioSchema,
   cobrador: cobradorSchema

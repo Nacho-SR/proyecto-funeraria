@@ -19,10 +19,21 @@ export class AdministrativosRepository {
     return { id: usuario.id, ...data }
   }
 
+  async editarUsuario(data) {
+    const usuario = await db.collection("usuarios").doc()
+    await usuario.set(data)
+    return { ...data }
+  }
   async crearCliente(data) {
      const cliente = await db.collection("clientes").doc()
      await cliente.set(data)
      return { id: cliente.id, ...data }
+  }
+
+  async editarCliente(data) {
+    const cliente = await db.collection("clientes").doc()
+    await cliente.set(data)
+    return { ...data }
   }
 
   async crearCobrador(data) {
