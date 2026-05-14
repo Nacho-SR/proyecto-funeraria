@@ -1,14 +1,10 @@
 <script setup>
 import AltaCliente from '@/components/AltaCliente.vue'
-// import { useRouter } from 'vue-router'
-// const router = useRouter()
 
 function onGuardado(cliente) {
   console.log('Cliente registrado:', cliente)
-  // Si tienen router, redirigir al listado:
-  // router.push({ name: 'clientes' })
+ 
 }
-
 function onCancelado() {
   console.log('Operación cancelada')
   // router.back()
