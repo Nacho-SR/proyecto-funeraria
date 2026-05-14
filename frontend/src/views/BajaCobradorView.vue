@@ -55,6 +55,9 @@ onMounted(cargar)
         <h3 class="mb-0 fw-bold" style="color: var(--primary)">Cobradores</h3>
         <small class="text-muted">Gestión y baja lógica de cobradores</small>
       </div>
+      <router-link to="/alta-cobrador" class="btn btn-custom">
+        + Nuevo cobrador
+      </router-link>
     </div>
 
     <div v-if="exito" class="alert alert-success alert-dismissible">
@@ -100,14 +103,24 @@ onMounted(cargar)
                 </span>
               </td>
               <td class="text-end">
-                <button
-                  v-if="c.activo !== false"
-                  class="btn btn-sm btn-outline-danger"
-                  @click="pedirBaja(c)"
-                >
-                  🗑 Dar de baja
-                </button>
-                <span v-else class="text-muted small">—</span>
+                <div class="d-flex gap-2 justify-content-end">
+                  <router-link
+                    v-if="c.activo !== false"
+                    :to="`/editar-cobrador/${c.cobradorID}`"
+                    class="btn btn-sm btn-outline-secondary"
+                    title="Editar"
+                  >
+                   Editar
+                  </router-link>
+                  <button
+                    v-if="c.activo !== false"
+                    class="btn btn-sm btn-outline-danger"
+                    @click="pedirBaja(c)"
+                  >
+                    🗑 Dar de baja
+                  </button>
+                  <span v-else class="text-muted small">—</span>
+                </div>
               </td>
             </tr>
           </tbody>
