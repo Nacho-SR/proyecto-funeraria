@@ -38,6 +38,12 @@ const routes = [
   // Altas (admin)
   { path: '/alta-cliente', name: 'alta-cliente', component: () => import('../views/AltaClienteView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/alta-paquete', name: 'alta-paquete', component: () => import('../views/AltaPaqueteView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
+  { path: '/alta-cobrador', name: 'alta-cobrador', component: () => import('../views/AltaCobradorView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
+  { path: '/alta-contrato', name: 'alta-contrato', component: () => import('../views/AltaContratoView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
+
+  // Edits (admin)
+  { path: '/editar-cliente/:id', name: 'editar-cliente', component: () => import('../views/EditarClienteView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
+  { path: '/editar-cobrador/:id', name: 'editar-cobrador', component: () => import('../views/EditarCobradorView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
 
   // Bajas logicas (admin)
   { path: '/baja-cliente', name: 'baja-cliente', component: () => import('../views/BajaClienteView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
@@ -67,7 +73,6 @@ router.beforeEach((to) => {
     return token ? { name: 'dashboard-usuario' } : { name: 'login' }
   }
 
-  // Si el usuario no es admin y no ha completado su perfil, redirige a completar perfil
   if (
     token &&
     usuario?.rol !== 'admin' &&
