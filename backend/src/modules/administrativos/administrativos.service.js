@@ -25,6 +25,10 @@ export class AdministrativosService {
     return await this.repo.listarCobradoresActivos()
   }
 
+  async listarProductosActivos() {
+    return await this.repo.listarProductosActivos()
+  }
+
   async crearNuevoCliente(data) {
     console.log('Creando nuevo cliente con data:', data)
     console.log('Validando si el usuario ya existe con email:', data.usuario.email)

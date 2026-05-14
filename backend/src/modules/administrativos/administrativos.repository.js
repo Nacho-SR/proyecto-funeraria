@@ -143,6 +143,19 @@ export class AdministrativosRepository {
     return resultado;
   }
 
+  async listarProductosActivos() {
+    const promos = await db.collection('paquete_adicionales').get()
+    const paquetes = await db.collection('paquetes').get()
+    const adicionales = await db.collection('adicionales').get()
+    
+    const resultado = {
+      paquetes: paquetes.docs.map(doc => ({ id: doc.id, ...doc.data() })),
+      adicionales: adicionales.docs.map(doc => ({ id: doc.id, ...doc.data() })),
+      promociones: promos.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    }
+    return resultado
+  }
+
   async crearUsuario(data) {
     const usuario = await db.collection("usuarios").doc()
     await usuario.set(data)

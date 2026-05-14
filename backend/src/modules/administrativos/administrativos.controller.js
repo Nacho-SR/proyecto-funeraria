@@ -19,6 +19,11 @@ export const listarCobradoresActivos = async (req, res) => {
   res.status(200).json({ cobradores })
 }
 
+export const listarProductosActivos = async (req, res) => {
+  const result = await service.listarProductosActivos()
+  res.status(200).json({ result })
+}
+
 export const crearCliente = async (req, res) => {
   const doc = nuevoClienteSchema.parse(req.body)
   const created = await service.crearNuevoCliente(doc)
