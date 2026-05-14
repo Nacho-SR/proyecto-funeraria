@@ -36,7 +36,7 @@ async function confirmarBaja() {
   error.value = ''
   try {
     await clienteService.eliminar(clienteSeleccionado.value.cliente.cliente_id)
-    exito.value = `Cliente "${clienteSeleccionado.value.nombre}" dado de baja correctamente.`
+    exito.value = `Cliente "${clienteSeleccionado.value.usuario.nombre} ${clienteSeleccionado.value.usuario.apaterno}" dado de baja correctamente.`
     modalVisible.value = false
     await cargar()
   } catch {
@@ -133,7 +133,7 @@ onMounted(cargar)
     <ConfirmModal
       :show="modalVisible"
       titulo="Baja lógica de cliente"
-      :mensaje="`¿Dar de baja al cliente &quot;${clienteSeleccionado?.nombre} ${clienteSeleccionado?.apaterno}&quot;? El registro se conserva pero quedará inactivo.`"
+      :mensaje="`¿Dar de baja al cliente &quot;${clienteSeleccionado?.usuario.nombre} ${clienteSeleccionado?.usuario.apaterno}&quot;? El registro se conserva pero quedará inactivo.`"
       :cargando="procesando"
       @confirmar="confirmarBaja"
       @cancelar="modalVisible = false"

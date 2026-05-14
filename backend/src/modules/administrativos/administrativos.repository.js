@@ -1,7 +1,7 @@
 /*
   * Módulo de administrativos - Repositorio
 */
-import { db } from '../../config/firebase.js'
+import { admin, db } from '../../config/firebase.js'
 
 export class AdministrativosRepository {
 
@@ -201,7 +201,17 @@ export class AdministrativosRepository {
   }
   
   async darBajaCliente(clienteId) {
-    const clienteRef = db.collection("clientes").doc(clienteId)
-    await clienteRef.update({ activo: false, fecha_modificacion: admin.firestore.FieldValue.serverTimestamp() })
+    try {
+    const clienteRef = db.collection("clientes").doc(clienteId);
+    await clienteRef.update({
+      activo: false,
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    console.log('Cliente dado de baja exitosamente');
+  } catch (error) {
+    console.error('Error al dar de baja cliente:', error);
+    throw error; // o retorna un error controlado según tu lógica
+  }
   }
 }

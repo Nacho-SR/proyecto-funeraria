@@ -16,6 +16,6 @@ export const clienteService = {
     return api.put(`/clientes/${id}`, payload)
   },
   eliminar(id) {
-    return api.delete(`/clientes/${id}`)
+    return api.put(`${RESOURCE}/baja-cliente/${id}`)
   },
 }
