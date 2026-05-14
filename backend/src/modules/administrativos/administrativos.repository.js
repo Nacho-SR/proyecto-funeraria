@@ -208,7 +208,15 @@ export class AdministrativosRepository {
       fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
     });
 
-    console.log('Cliente dado de baja exitosamente');
+    const clienteDoc = await clienteRef.get();
+    const usuarioId = clienteDoc.data().usuarios_id;
+    const usuarioRef = db.collection("usuarios").doc(usuarioId);
+    await usuarioRef.update({
+      activo: false,
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+    });
+    
+    console.log('Cliente dado de baja exitosamente con su usuario asociado');
   } catch (error) {
     console.error('Error al dar de baja cliente:', error);
     throw error; // o retorna un error controlado según tu lógica
