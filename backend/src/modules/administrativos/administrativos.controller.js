@@ -9,6 +9,16 @@ import { ApiError } from '../../shared/utils/apiError.js'
 
 const service = new AdministrativosService()
 
+export const listarClientesActivos = async (req, res) => {
+  const clientes = await service.listarClientesActivos()
+  res.status(200).json({ clientes })
+}
+
+export const listarCobradoresActivos = async (req, res) => {
+  const cobradores = await service.listarCobradoresActivos()
+  res.status(200).json({ cobradores })
+}
+
 export const crearCliente = async (req, res) => {
   const doc = nuevoClienteSchema.parse(req.body)
   const created = await service.crearNuevoCliente(doc)

@@ -17,6 +17,14 @@ export class AdministrativosService {
     return `${nombre} ${apaterno} ${amaterno}`.trim()
   }
 
+  async listarClientesActivos() {
+    return await this.repo.listarClientesActivos()
+  }
+
+  async listarCobradoresActivos() {
+    return await this.repo.listarCobradoresActivos()
+  }
+
   async crearNuevoCliente(data) {
     console.log('Creando nuevo cliente con data:', data)
     console.log('Validando si el usuario ya existe con email:', data.usuario.email)
@@ -36,14 +44,15 @@ export class AdministrativosService {
     }
     delete usuario.password
 
+    const nuevoUsuario = await this.repo.crearUsuario(usuario)
+
     const cliente = {
       ...data.cliente,
       activo: data.activo ?? true,
+      usuarios_id: nuevoUsuario.id,
       fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
       fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
     }
-
-    const nuevoUsuario = await this.repo.crearUsuario(usuario)
     const infoCliente = await this.repo.crearCliente(cliente)
     return { ...this.sanitizeUsuario(nuevoUsuario), ...infoCliente }
   }
