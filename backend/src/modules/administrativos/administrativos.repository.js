@@ -79,6 +79,7 @@ export class AdministrativosRepository {
             nombre: data.nombre,
             apaterno: data.apaterno,
             amaterno: data.amaterno,
+            email: data.email
           });
         }
       });
@@ -133,6 +134,7 @@ export class AdministrativosRepository {
             nombre: data.nombre,
             apaterno: data.apaterno,
             amaterno: data.amaterno,
+            email: data.email
           });
         }
       });

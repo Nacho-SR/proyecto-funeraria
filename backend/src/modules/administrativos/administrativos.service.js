@@ -130,4 +130,5 @@ export class AdministrativosService {
       throw new ApiError(400, 'Cliente ya está dado de baja')
     }
     await this.repo.darBajaCliente(clienteId)
+  }
 }
