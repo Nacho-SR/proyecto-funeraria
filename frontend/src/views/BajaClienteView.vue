@@ -114,15 +114,25 @@ onMounted(cargar)
                 </span>
               </td>
               <td class="text-end">
-                <button
-                  v-if="c.activo !== false"
-                  class="btn btn-sm btn-outline-danger"
-                  @click="pedirBaja(c)"
-                  title="Dar de baja"
-                >
-                  🗑 Dar de baja
-                </button>
-                <span v-else class="text-muted small">—</span>
+                <div class="d-flex gap-2 justify-content-end">
+                  <router-link
+                    v-if="c.activo !== false"
+                    :to="`/editar-cliente/${c.cliente.cliente_id}`"
+                    class="btn btn-sm btn-outline-secondary"
+                    title="Editar"
+                  >
+                  Editar
+                  </router-link>
+                  <button
+                    v-if="c.activo !== false"
+                    class="btn btn-sm btn-outline-danger"
+                    @click="pedirBaja(c)"
+                    title="Dar de baja"
+                  >
+                    🗑 Dar de baja
+                  </button>
+                  <span v-else class="text-muted small">—</span>
+                </div>
               </td>
             </tr>
           </tbody>
