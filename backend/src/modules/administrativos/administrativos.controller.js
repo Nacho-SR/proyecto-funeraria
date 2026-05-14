@@ -20,3 +20,9 @@ export const crearCobrador = async (req, res) => {
   const created = await service.crearNuevoCobrador(doc)
   res.status(201).json(created)
 }
+
+export const crearPaqueteAdicional = async (req, res) => {
+  const doc = createClientesSchema.parse(req.body)
+  const created = await service.crearPaqueteAdicional(doc)
+  res.status(201).json(created)
+}
