@@ -9,6 +9,8 @@ const tarjetas = [
   { titulo: 'Servicios', icono: '⚙️', ruta: '/baja-servicio', desc: 'Gestionar servicios', color: '#567C8D' },
   { titulo: 'Alta Cliente', icono: '➕', ruta: '/alta-cliente', desc: 'Registrar nuevo cliente', color: '#2F4156' },
   { titulo: 'Alta Paquete', icono: '📦', ruta: '/alta-paquete', desc: 'Registrar nuevo paquete', color: '#567C8D' },
+  { titulo: 'Alta Cobrador', icono: '🪪', ruta: '/alta-cobrador', desc: 'Registrar nuevo cobrador', color: '#2F4156' },
+  { titulo: 'Alta Contrato', icono: '📝', ruta: '/alta-contrato', desc: 'Registrar nuevo contrato', color: '#567C8D' },
 ]
 </script>
 
