@@ -12,17 +12,23 @@ export class AdministrativosRepository {
     if (usua.empty) return null
     return { id: usua.docs[0].id, ...usua.docs[0].data() }
   }
+  
+  async findClienteById(id) {
+    const clienteDoc = await db.collection("clientes").doc(id).get()
+    if (!clienteDoc.exists) return null
+    return { cliente_id: clienteDoc.id, ...clienteDoc.data() }
+  }
 
   async findPaqueteByName(nombre) {
     const paquete = await db.collection("paquetes").where('nombre', '==', nombre).limit(1).get()
     if (paquete.empty) return null
-    return { id: paquete.docs[0].id, ...paquete.docs[0].data() }
+    return { paquete_id: paquete.docs[0].id, ...paquete.docs[0].data() }
   }
 
   async findAdicionalByName(nombre) {
     const adicional = await db.collection("adicionales").where('nombre', '==', nombre).limit(1).get()
     if (adicional.empty) return null
-    return { id: adicional.docs[0].id, ...adicional.docs[0].data() }
+    return { adicional_id: adicional.docs[0].id, ...adicional.docs[0].data() }
   }
 
   async findPromoByIds(paquete_id, adicional_id) {
@@ -32,7 +38,7 @@ export class AdministrativosRepository {
       .limit(1)
       .get()
     if (promo.empty) return null
-    return { id: promo.docs[0].id, ...promo.docs[0].data() }
+    return { promo_id: promo.docs[0].id, ...promo.docs[0].data() }
   }
 
   async listarClientesActivos() {
@@ -50,7 +56,7 @@ export class AdministrativosRepository {
     const usuariosIds = [];
 
     clientesSnapshot.forEach(doc => {
-      const cliente = { id: doc.id, ...doc.data() };
+      const cliente = { cliente_id: doc.id, ...doc.data() };
       clientesData.push(cliente);
       if (cliente.usuarios_id) {
         usuariosIds.push(cliente.usuarios_id);
@@ -104,7 +110,7 @@ export class AdministrativosRepository {
     const usuariosIds = [];
 
     cobradoresSnapshot.forEach(doc => {
-      const cobrador = { id: doc.id, ...doc.data() };
+      const cobrador = { cobrador_id: doc.id, ...doc.data() };
       cobradoresData.push(cobrador);
       if (cobrador.usuarios_id) {
         usuariosIds.push(cobrador.usuarios_id);
@@ -144,14 +150,14 @@ export class AdministrativosRepository {
   }
 
   async listarProductosActivos() {
-    const promos = await db.collection('paquete_adicionales').get()
-    const paquetes = await db.collection('paquetes').get()
-    const adicionales = await db.collection('adicionales').get()
-    
+    const promos = await db.collection('paquete_adicionales').where('activo', '==', true).get()
+    const paquetes = await db.collection('paquetes').where('activo', '==', true).get()
+    const adicionales = await db.collection('adicionales').where('activo', '==', true).get()
+
     const resultado = {
-      paquetes: paquetes.docs.map(doc => ({ id: doc.id, ...doc.data() })),
-      adicionales: adicionales.docs.map(doc => ({ id: doc.id, ...doc.data() })),
-      promociones: promos.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      paquetes: paquetes.docs.map(doc => ({ paquete_id: doc.id, ...doc.data() })),
+      adicionales: adicionales.docs.map(doc => ({ adicional_id: doc.id, ...doc.data() })),
+      promociones: promos.docs.map(doc => ({ promo_id: doc.id, ...doc.data() }))
     }
     return resultado
   }
@@ -159,36 +165,41 @@ export class AdministrativosRepository {
   async crearUsuario(data) {
     const usuario = await db.collection("usuarios").doc()
     await usuario.set(data)
-    return { id: usuario.id, ...data }
+    return { usuario_id: usuario.id, ...data }
   }
 
   async crearCliente(data) {
      const cliente = await db.collection("clientes").doc()
      await cliente.set(data)
-     return { id: cliente.id, ...data }
+     return { cliente_id: cliente.id, ...data }
   }
 
   async crearCobrador(data) {
     const cobrador = await db.collection("cobradores").doc()
     await cobrador.set(data)
-    return { id: cobrador.id, ...data }
+    return { cobrador_id: cobrador.id, ...data }
   }
 
   async crearPromo(data) {
     const promo = await db.collection("paquete_adicionales").doc()
     await promo.set(data)
-    return { id: promo.id, ...data }
+    return { promo_id: promo.id, ...data }
   }
 
   async crearNuevoPaquete(data) {
     const paquete = await db.collection("paquetes").doc()
     await paquete.set(data)
-    return { id: paquete.id, ...data }
+    return { paquete_id: paquete.id, ...data }
   }
 
   async crearNuevoAdicional(data) {
     const adicional = await db.collection("adicionales").doc()
     await adicional.set(data)
-    return { id: adicional.id, ...data }
+    return { adicional_id: adicional.id, ...data }
+  }
+  
+  async darBajaCliente(clienteId) {
+    const clienteRef = db.collection("clientes").doc(clienteId)
+    await clienteRef.update({ activo: false, fecha_modificacion: admin.firestore.FieldValue.serverTimestamp() })
   }
 }

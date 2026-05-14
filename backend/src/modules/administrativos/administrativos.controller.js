@@ -20,8 +20,8 @@ export const listarCobradoresActivos = async (req, res) => {
 }
 
 export const listarProductosActivos = async (req, res) => {
-  const result = await service.listarProductosActivos()
-  res.status(200).json({ result })
+  const productosActivos = await service.listarProductosActivos()
+  res.status(200).json({ productosActivos })
 }
 
 export const crearCliente = async (req, res) => {
@@ -40,4 +40,18 @@ export const crearPaqueteAdicional = async (req, res) => {
   const doc = createClientesSchema.parse(req.body)
   const created = await service.crearPaqueteAdicional(doc)
   res.status(201).json(created)
+}
+
+export const darBajaCliente = async (req, res) => {
+  const clienteId = req.params.id
+  try {
+    await service.darBajaCliente(clienteId)
+    res.status(200).json({ message: 'Cliente dado de baja exitosamente' })
+  } catch (error) {
+    if (error instanceof ApiError) {
+      res.status(error.statusCode).json({ error: error.message })
+    } else {
+      res.status(500).json({ error: 'Error interno del servidor' })
+    }
+  }
 }

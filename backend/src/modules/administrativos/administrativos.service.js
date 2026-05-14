@@ -120,4 +120,14 @@ export class AdministrativosService {
       return await this.repo.crearNuevoAdicional(data.adicional)
     }
   }
+
+  async darBajaCliente(clienteId) {
+    const cliente = await this.repo.findClienteById(clienteId)
+    if (!cliente) {
+      throw new ApiError(404, 'Cliente no encontrado')
+    }
+    if (!cliente.activo) {
+      throw new ApiError(400, 'Cliente ya está dado de baja')
+    }
+    await this.repo.darBajaCliente(clienteId)
 }

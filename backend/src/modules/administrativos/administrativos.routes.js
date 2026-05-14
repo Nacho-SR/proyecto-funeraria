@@ -16,6 +16,7 @@ router.get('/productos-activos', asyncHandler(Ctrl.listarProductosActivos))
 router.post('/alta-cliente', asyncHandler(Ctrl.crearCliente))
 router.post('/alta-cobrador', asyncHandler(Ctrl.crearCobrador))
 router.post('/alta-paquete-adicional', asyncHandler(Ctrl.crearPaqueteAdicional))
+router.put('/baja-cliente/:id', asyncHandler(Ctrl.darBajaCliente))
 
 
 export default router
