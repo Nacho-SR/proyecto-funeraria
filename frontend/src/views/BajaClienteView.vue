@@ -17,7 +17,7 @@ async function cargar() {
   error.value = ''
   try {
     const { data } = await clienteService.listar()
-    clientes.value = Array.isArray(data) ? data : data.data ?? []
+    clientes.value = Array.isArray(data.clientes) ? data.clientes : data.data ?? []
   } catch {
     error.value = 'No se pudo cargar la lista de clientes.'
   } finally {
@@ -35,7 +35,7 @@ async function confirmarBaja() {
   exito.value = ''
   error.value = ''
   try {
-    await clienteService.eliminar(clienteSeleccionado.value.clienteID)
+    await clienteService.eliminar(clienteSeleccionado.value.cliente.cliente_id)
     exito.value = `Cliente "${clienteSeleccionado.value.nombre}" dado de baja correctamente.`
     modalVisible.value = false
     await cargar()
@@ -82,7 +82,9 @@ onMounted(cargar)
           <thead class="table-header-custom">
             <tr>
               <th>#</th>
-              <th>Nombre completo</th>
+              <th>Nombre</th>
+              <th>Apellido Paterno</th>
+              <th>Apellido Materno</th>
               <th>Teléfono</th>
               <th>Email</th>
               <th>Colonia</th>
@@ -93,14 +95,16 @@ onMounted(cargar)
           <tbody>
             <tr
               v-for="c in clientes"
-              :key="c.clienteID"
+              :key="c.cliente.cliente_id"
               :class="{ 'table-row-inactive': c.activo === false }"
             >
-              <td>{{ c.clienteID }}</td>
-              <td class="fw-semibold">{{ c.nombre }} {{ c.apaterno }} {{ c.amaterno }}</td>
-              <td>{{ c.telefono }}</td>
-              <td>{{ c.email || '—' }}</td>
-              <td>{{ c.colonia }}</td>
+              <td>{{ c.cliente.cliente_id }}</td>
+              <td class="fw-semibold">{{ c.usuario.nombre }}</td>
+              <td class="fw-semibold">{{ c.usuario.apaterno }}</td>
+              <td class="fw-semibold">{{ c.usuario.amaterno }}</td>
+              <td>{{ c.cliente.telefono }}</td>
+              <td>{{ c.usuario.email || '—' }}</td>
+              <td>{{ c.cliente.colonia }}</td>
               <td>
                 <span
                   class="badge"
