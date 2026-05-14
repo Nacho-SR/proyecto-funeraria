@@ -86,5 +86,34 @@ export class AdministrativosService {
     const infoCobrador = await this.repo.crearCobrador(cobrador)
     return { ...this.sanitizeUsuario(nuevoUsuario), ...infoCobrador }
   }
-  
+
+  async crearPaqueteAdicional(data) {
+    if (!data) {
+      throw new ApiError(400, 'Datos de paquete y/o adicional son requeridos')
+    }
+
+    if (data.hasOwnProperty('paqueteAdicional')) {
+      if (await this.repo.findPromoByIds(data.paqueteAdicional.paquete_id, data.paqueteAdicional.adicional_id)) {
+        throw new ApiError(409, 'La combinación de paquete y adicional ya existe')
+      }
+      
+      return await this.repo.crearPromo(data.paqueteAdicional)
+    }
+    
+    if (data.hasOwnProperty('paquete')) {
+      if (await this.repo.findPaqueteByName(data.paquete.nombre)) {
+        throw new ApiError(409, 'Un paquete ya existe con ese nombre')
+      }
+
+      return await this.repo.crearNuevoPaquete(data.paquete)
+    }
+
+    if (data.hasOwnProperty('adicional')) {
+      if (await this.repo.findAdicionalByName(data.adicional.nombre)) {
+        throw new ApiError(409, 'Un adicional ya existe con ese nombre')
+      }
+
+      return await this.repo.crearNuevoAdicional(data.adicional)
+    }
+  }
 }

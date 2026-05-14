@@ -21,6 +21,24 @@ export const cobradorSchema = z.object({
   telefono: z.string().min(7),
 })
 
+export const paqueteSchema = z.object({
+  nombre: z.string().min(3),
+  descripcion: z.string().min(10),
+  precio_base: z.number().positive()
+})
+
+export const adicionalSchema = z.object({
+  nombre: z.string().min(3),
+  descripcion: z.string().min(10),
+  precio: z.number().positive()
+})
+
+export const paqueteAdicionalSchema = z.object({
+  paquete_id: z.string().min(3),
+  adicional_id: z.string().min(3),
+  precio_especial: z.number().min(0).max(100)
+})
+
 export const nuevoClienteSchema = z.object({
   usuario: usuarioSchema,
   cliente: clienteSchema
@@ -29,6 +47,12 @@ export const nuevoClienteSchema = z.object({
 export const nuevoCobradorSchema = z.object({
   usuario: usuarioSchema,
   cobrador: cobradorSchema
+})
+
+export const createPaqueteAdicionalSchema = z.object({
+  paquete: paqueteSchema.optional(),
+  adicional: adicionalSchema.optional(),
+  paqueteAdicional: paqueteAdicionalSchema.optional()
 })
 
 export const createAsignacionCobroSchema = z.object({
