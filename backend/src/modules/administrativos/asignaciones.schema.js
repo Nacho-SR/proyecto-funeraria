@@ -33,8 +33,8 @@ export const adicionalSchema = z.object({
 })
 
 export const paqueteAdicionalSchema = z.object({
-  paquete_id: z.string().min(3),
-  adicional_id: z.string().min(3),
+  paquetes_id: z.string().min(3),
+  adicionales_id: z.string().min(3),
   precio_especial: z.number().positive()
 })
 
@@ -49,25 +49,25 @@ export const nuevoCobradorSchema = z.object({
 })
 
 export const createPaqueteAdicionalSchema = z.object({
-  paquete_id: z.string().min(3).optional(),
+  paquetes_id: z.string().min(3).optional(),
   paquete: paqueteSchema.optional(),
-  adicional_id: z.string().min(3).optional(),
+  adicionales_id: z.string().min(3).optional(),
   adicional: adicionalSchema.optional(),
   promo: z.boolean().default(false).optional(),
   precio_especial: z.number().positive().optional()
 })
 
 export const createContratoSchema = z.object({
-  cliente_id: z.string().optional(),
+  clientes_id: z.string().optional(),
   nuevo_cliente: nuevoClienteSchema.optional(),
-  paquete_id: z.string(),
+  paquetes_id: z.string(),
   fecha_inicio: z.string().refine(val => !isNaN(Date.parse(val)), { message: 'Fecha inválida' }),
   frecuencia_pago: z.enum(['semanal', 'quincenal', 'mensual']),
 })
 
 export const updateContratoSchema = z.object({
-  cliente_id: z.string().optional(),
-  paquete_id: z.string().optional(),
+  clientes_id: z.string().optional(),
+  paquetes_id: z.string().optional(),
   fecha_inicio: z.string().refine(val => !isNaN(Date.parse(val)), { message: 'Fecha inválida' }).optional(),
   frecuencia_pago: z.enum(['semanal', 'quincenal', 'mensual']).optional(),
 }).strict()

@@ -2,7 +2,7 @@
   Controlador para la gestión de administrativos, incluyendo el registro de usuarios.
 */
 import { createClientesSchema } from '../clientes/clientes.schema.js'
-import { nuevoClienteSchema, nuevoCobradorSchema, createPaqueteAdicionalSchema } from './asignaciones.schema.js'
+import { nuevoClienteSchema, nuevoCobradorSchema, createPaqueteAdicionalSchema, createContratoSchema } from './asignaciones.schema.js'
 import { createCobradoresSchema } from '../cobradores/cobradores.schema.js'
 import { AdministrativosService } from './administrativos.service.js'
 import { ApiError } from '../../shared/utils/apiError.js'

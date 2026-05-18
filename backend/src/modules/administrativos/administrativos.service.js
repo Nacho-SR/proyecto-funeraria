@@ -127,12 +127,12 @@ export class AdministrativosService {
     // 1. Validar que el cliente y el paquete existan
     // 2. Crear el contrato en la base de datos
     // 3. Retornar la información del contrato creado
-    if (!data.cliente_id && !data.nuevo_cliente) {
-      throw new ApiError(400, 'Debe proporcionar cliente_id o nuevo_cliente')
+    if (!data.clientes_id && !data.nuevo_cliente) {
+      throw new ApiError(400, 'Debe proporcionar clientes_id o nuevo_cliente')
     }
     if (data.nuevo_cliente) {
       const nuevoCliente = await this.crearNuevoCliente(data.nuevo_cliente)
-      data.cliente_id = nuevoCliente.id
+      data.clientes_id = nuevoCliente.id
       delete data.nuevo_cliente
     }
 
