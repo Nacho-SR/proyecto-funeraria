@@ -57,6 +57,21 @@ export const createPaqueteAdicionalSchema = z.object({
   precio_especial: z.number().positive().optional()
 })
 
+export const createContratoSchema = z.object({
+  cliente_id: z.string().optional(),
+  nuevo_cliente: nuevoClienteSchema.optional(),
+  paquete_id: z.string(),
+  fecha_inicio: z.string().refine(val => !isNaN(Date.parse(val)), { message: 'Fecha inválida' }),
+  frecuencia_pago: z.enum(['semanal', 'quincenal', 'mensual']),
+})
+
+export const updateContratoSchema = z.object({
+  cliente_id: z.string().optional(),
+  paquete_id: z.string().optional(),
+  fecha_inicio: z.string().refine(val => !isNaN(Date.parse(val)), { message: 'Fecha inválida' }).optional(),
+  frecuencia_pago: z.enum(['semanal', 'quincenal', 'mensual']).optional(),
+}).strict()
+
 export const createAsignacionCobroSchema = z.object({
   cobradorID: z.string(),
   clientes: z.array(z.object({
