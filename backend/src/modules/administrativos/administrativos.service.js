@@ -53,7 +53,7 @@ export class AdministrativosService {
     const cliente = {
       ...data.cliente,
       activo: data.activo ?? true,
-      usuarios_id: nuevoUsuario.id,
+      usuarios_id: nuevoUsuario.usuario_id,
       fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
       fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
     }
@@ -62,8 +62,6 @@ export class AdministrativosService {
   }
 
   async crearNuevoCobrador(data) {
-    console.log('Creando nuevo cobrador con datos: ', data)
-    console.log('Validando si el usuario ya existe con email:', data.usuario.email)
     if (await this.repo.findUserByEmail(data.usuario.email)) {
       throw new ApiError(409, 'Usuario ya existe')
     }
@@ -79,14 +77,15 @@ export class AdministrativosService {
       fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
     }
     delete usuario.password
+    const nuevoUsuario = await this.repo.crearUsuario(usuario)
 
     const cobrador = {
       ...data.cobrador,
       activo: data.activo ?? true,
+      usuarios_id: nuevoUsuario.usuario_id,
       fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
       fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
     }
-    const nuevoUsuario = await this.repo.crearUsuario(usuario)
     const infoCobrador = await this.repo.crearCobrador(cobrador)
     return { ...this.sanitizeUsuario(nuevoUsuario), ...infoCobrador }
   }
