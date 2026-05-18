@@ -92,24 +92,77 @@ export class AdministrativosService {
   }
 
   async crearPaqueteAdicional(data) {
-    if (!data) {
+    if ((data.hasOwnProperty('paquete') == false && data.hasOwnProperty('adicional') == false) && (data.hasOwnProperty('paquete_id') == false && data.hasOwnProperty('adicional_id') == false )) {
       throw new ApiError(400, 'Datos de paquete y/o adicional son requeridos')
     }
 
-    if (data.hasOwnProperty('paqueteAdicional')) {
-      if (await this.repo.findPromoByIds(data.paqueteAdicional.paquete_id, data.paqueteAdicional.adicional_id)) {
-        throw new ApiError(409, 'La combinación de paquete y adicional ya existe')
-      }
-      
-      return await this.repo.crearPromo(data.paqueteAdicional)
-    }
-    
-    if (data.hasOwnProperty('paquete')) {
+    if (data.hasOwnProperty('paquete') && data.hasOwnProperty('adicional')) {
+
       if (await this.repo.findPaqueteByName(data.paquete.nombre)) {
         throw new ApiError(409, 'Un paquete ya existe con ese nombre')
       }
+      const paqueteSnap = await this.repo.crearNuevoPaquete(data.paquete)
+      const paqueteId = paqueteSnap.paquete_id
 
-      return await this.repo.crearNuevoPaquete(data.paquete)
+      if (await this.repo.findAdicionalByName(data.adicional.nombre)) {
+        throw new ApiError(409, 'Un adicional ya existe con ese nombre')
+      }
+
+      const adicionalSnap = await this.repo.crearNuevoAdicional(data.adicional)
+      const adicionalId = adicionalSnap.adicional_id
+
+      if (data.promo) {
+        if (await this.repo.findPromoByIds(paqueteId, adicionalId)) {
+          throw new ApiError(409, 'La combinación de paquete y adicional ya existe')
+        }
+        const promoSnap = await this.repo.crearPromo({
+          paquete_id: paqueteId,
+          adicional_id: adicionalId,
+          precio_especial: data.precio_especial ?? null
+        })
+
+        return {
+          ...promoSnap,
+          paquete: { ...paqueteSnap },
+          adicional: { ...adicionalSnap }
+        }
+      } else {
+        return {
+          paquete: { ...paqueteSnap },
+          adicional: { ...adicionalSnap }
+        }
+      }
+    }
+
+    if(data.hasOwnProperty('paquete_id') && data.hasOwnProperty('adicional_id')) {
+      const { paquete_id, adicional_id } = data
+
+      const paqueteSnap = await this.repo.findPaqueteById(paquete_id)
+      console.log('paqueteSnap:', paqueteSnap)
+      if (!paqueteSnap) {
+        throw new ApiError(404, 'Paquete no encontrado, no se puede crear promo')
+      }
+      const adicionalSnap = await this.repo.findAdicionalById(adicional_id)
+      if (!adicionalSnap) {
+        throw new ApiError(404, 'Adicional no encontrado, no se puede crear promo')
+      }
+      if (data.promo && data.precio_especial) {
+        if (await this.repo.findPromoByIds(paquete_id, adicional_id)) {
+          throw new ApiError(409, 'La combinación de paquete y adicional ya existe')
+        }
+        const promoSnap = await this.repo.crearPromo({
+          paquete_id,
+          adicional_id,
+          precio_especial: data.precio_especial ?? null
+        })
+        return {
+          ...promoSnap,
+          paquete: { ...paqueteSnap },
+          adicional: { ...adicionalSnap }
+        }
+      } else {
+        throw new ApiError(400, 'Datos de la promoción son requeridos')
+      }
     }
 
     if (data.hasOwnProperty('adicional')) {
@@ -118,6 +171,13 @@ export class AdministrativosService {
       }
 
       return await this.repo.crearNuevoAdicional(data.adicional)
+    }
+
+    if (data.hasOwnProperty('paquete')) {
+      if (await this.repo.findPaqueteByName(data.paquete.nombre)) {
+        throw new ApiError(409, 'Un paquete ya existe con ese nombre')
+      }
+      return await this.repo.crearNuevoPaquete(data.paquete)
     }
   }
 

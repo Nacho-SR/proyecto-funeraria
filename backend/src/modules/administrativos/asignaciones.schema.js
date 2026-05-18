@@ -36,7 +36,7 @@ export const adicionalSchema = z.object({
 export const paqueteAdicionalSchema = z.object({
   paquete_id: z.string().min(3),
   adicional_id: z.string().min(3),
-  precio_especial: z.number().min(0).max(100)
+  precio_especial: z.number().positive()
 })
 
 export const nuevoClienteSchema = z.object({
@@ -50,9 +50,12 @@ export const nuevoCobradorSchema = z.object({
 })
 
 export const createPaqueteAdicionalSchema = z.object({
+  paquete_id: z.string().min(3).optional(),
   paquete: paqueteSchema.optional(),
+  adicional_id: z.string().min(3).optional(),
   adicional: adicionalSchema.optional(),
-  paqueteAdicional: paqueteAdicionalSchema.optional()
+  promo: z.boolean().default(false).optional(),
+  precio_especial: z.number().positive().optional()
 })
 
 export const createAsignacionCobroSchema = z.object({

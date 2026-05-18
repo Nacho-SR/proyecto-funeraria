@@ -19,6 +19,18 @@ export class AdministrativosRepository {
     return { cliente_id: clienteDoc.id, ...clienteDoc.data() }
   }
 
+  async findPaqueteById(id) {
+    const paqueteDoc = await db.collection("paquetes").doc(id).get()
+    if (!paqueteDoc.exists) return null
+    return { paquete_id: paqueteDoc.id, ...paqueteDoc.data() }
+  }
+
+  async findAdicionalById(id) {
+    const adicionalDoc = await db.collection("adicionales").doc(id).get()
+    if (!adicionalDoc.exists) return null
+    return { adicional_id: adicionalDoc.id, ...adicionalDoc.data() }
+  }
+
   async findPaqueteByName(nombre) {
     const paquete = await db.collection("paquetes").where('nombre', '==', nombre).limit(1).get()
     if (paquete.empty) return null

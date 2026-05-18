@@ -5,7 +5,7 @@ export function errorHandler(err, req, res, next) {
   if(err instanceof ZodError) {
     return res.status(400).json({
       message: 'Error en la validacion',
-      details: err.errors
+      errors: err.errors
     })
   }
   if (err instanceof ApiError) {
