@@ -123,10 +123,7 @@ export class AdministrativosService {
   }
 
   async crearNuevoContrato(data) {
-    // Aquí iría la lógica para crear un nuevo contrato, por ejemplo:
-    // 1. Validar que el cliente y el paquete existan
-    // 2. Crear el contrato en la base de datos
-    // 3. Retornar la información del contrato creado
+    
     if (!data.clientes_id && !data.nuevo_cliente) {
       throw new ApiError(400, 'Debe proporcionar clientes_id o nuevo_cliente')
     }
@@ -139,9 +136,29 @@ export class AdministrativosService {
     const ultimoNumero = await this.repo.buscarUltimoNumeroContrato()
     const nuevoNumContrato = await this.generarNuevoNumContrato(ultimoNumero, new Date())
 
+    const paqueteSnap = await this.repo.findPaqueteById(data.paquetes_id)
+    if (!paqueteSnap) {
+      throw new ApiError(404, 'Paquete no encontrado, no se puede crear contrato')
+    }
+
+    let precioFinal = paqueteSnap.precio_base
+    let adicionalesInfo = data.adicionales
+    if (adicionalesInfo && adicionalesInfo.length > 0) {
+      for (const adicionalesInfo of data.adicionales) {
+        const adicionalSnap = await this.repo.findAdicionalById(adicionalesInfo.adicional_id)
+        if (!adicionalSnap) {
+          throw new ApiError(404, 'Adicional no encontrado, no se puede crear contrato')
+        }
+
+        let precioAdicional = adicionalesInfo.precio
+        precioFinal += precioAdicional
+      }
+    }
+
+    delete data.adicionales
     const nuevoContrato = {
       ...data,
-      precio_final: 0,
+      precio_final: precioFinal,
       abonado: 0,
       estado: 'activo',
       num_contrato: nuevoNumContrato,
@@ -150,6 +167,16 @@ export class AdministrativosService {
     }
 
     const createdContrato = await this.repo.crearContrato(nuevoContrato)
+    
+    const adicionales_contrato = {
+      contrato_id: createdContrato.id,
+      adicionalesInfo: adicionalesInfo || [],
+      activo: true,
+      fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+    }
+
+    await this.repo.asignarAdicionalesAContrato(adicionales_contrato)
     return createdContrato
   }
   

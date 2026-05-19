@@ -32,6 +32,11 @@ export const adicionalSchema = z.object({
   precio: z.number().positive()
 })
 
+export const adicionalPrecioSchema = z.object({
+  adicional_id: z.string().min(3),
+  precio: z.number().positive()
+})
+
 export const paqueteAdicionalSchema = z.object({
   paquetes_id: z.string().min(3),
   adicionales_id: z.string().min(3),
@@ -60,6 +65,7 @@ export const createPaqueteAdicionalSchema = z.object({
 export const createContratoSchema = z.object({
   clientes_id: z.string().optional(),
   nuevo_cliente: nuevoClienteSchema.optional(),
+  adicionales: adicionalPrecioSchema.array().optional(),
   paquetes_id: z.string(),
   fecha_inicio: z.string().refine(val => !isNaN(Date.parse(val)), { message: 'Fecha inválida' }),
   frecuencia_pago: z.enum(['semanal', 'quincenal', 'mensual']),

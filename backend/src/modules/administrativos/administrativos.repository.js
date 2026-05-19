@@ -246,6 +246,20 @@ export class AdministrativosRepository {
     return { id: contrato.id, ...data }
   }
 
+  async asignarAdicionalesAContrato(adicionales_contrato) {
+    adicionales_contrato.adicionalesInfo.forEach(async adicional => {
+      const contratoAdicional = await db.collection("contrato_adicional").doc()
+      await contratoAdicional.set({
+        contrato_id: adicionales_contrato.contrato_id,
+        adicional_id: adicional.adicional_id,
+        precio_unitario: adicional.precio,
+        activo: adicionales_contrato.activo ?? true,
+        fecha_creacion: adicionales_contrato.fecha_creacion,
+        fecha_modificacion: adicionales_contrato.fecha_modificacion
+      })
+    })
+  }
+
   async buscarUltimoNumeroContrato() {
     const contratos = await db.collection("contratos").orderBy('fecha_creacion', 'desc').limit(1).get()
     if (contratos.empty) return 0
