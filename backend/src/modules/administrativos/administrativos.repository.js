@@ -260,6 +260,26 @@ export class AdministrativosRepository {
     })
   }
 
+  async asignarBeneficiariosAContrato(beneficiarios_contrato) {
+    beneficiarios_contrato.beneficiariosInfo.forEach(async beneficiario => {
+      const contratoBeneficiario = await db.collection("beneficiarios").doc()
+      await contratoBeneficiario.set({
+        nombre: beneficiario.nombre,
+        apaterno: beneficiario.apaterno,
+        amaterno: beneficiario.amaterno,
+        parentesco: beneficiario.parentesco,
+        telefono: beneficiario.telefono,
+        direccion: beneficiario.direccion,
+        contrato_id: beneficiarios_contrato.contrato_id
+      })
+    })
+  }
+
+  async asignarDireccionCobroAContrato(direccion_cobro_contrato) {
+    const contratoDireccionCobro = await db.collection("contrato_direccion_cobro").doc()
+    await contratoDireccionCobro.set(direccion_cobro_contrato)
+  }
+
   async buscarUltimoNumeroContrato() {
     const contratos = await db.collection("contratos").orderBy('fecha_creacion', 'desc').limit(1).get()
     if (contratos.empty) return 0

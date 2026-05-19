@@ -143,6 +143,12 @@ export class AdministrativosService {
 
     let precioFinal = paqueteSnap.precio_base
     let adicionalesInfo = data.adicionales
+    let beneficiariosInfo = data.beneficiarios
+    let direccionCobroInfo = data.direccion_cobro
+    delete data.adicionales
+    delete data.beneficiarios
+    delete data.direccion_cobro
+
     if (adicionalesInfo && adicionalesInfo.length > 0) {
       for (const adicionalesInfo of data.adicionales) {
         const adicionalSnap = await this.repo.findAdicionalById(adicionalesInfo.adicional_id)
@@ -155,7 +161,6 @@ export class AdministrativosService {
       }
     }
 
-    delete data.adicionales
     const nuevoContrato = {
       ...data,
       precio_final: precioFinal,
@@ -167,16 +172,29 @@ export class AdministrativosService {
     }
 
     const createdContrato = await this.repo.crearContrato(nuevoContrato)
+    const contratoId = createdContrato.id
     
     const adicionales_contrato = {
-      contrato_id: createdContrato.id,
+      contrato_id: contratoId,
       adicionalesInfo: adicionalesInfo || [],
       activo: true,
       fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
       fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
     }
-
     await this.repo.asignarAdicionalesAContrato(adicionales_contrato)
+
+    const beneficiarios_contrato = {
+      contrato_id: contratoId,
+      beneficiariosInfo: beneficiariosInfo || []
+    }
+    await this.repo.asignarBeneficiariosAContrato(beneficiarios_contrato)
+
+    const direccionCobro_contrato = {
+      contrato_id: contratoId,
+      ...direccionCobroInfo
+    }
+    await this.repo.asignarDireccionCobroAContrato(direccionCobro_contrato)
+
     return createdContrato
   }
   
