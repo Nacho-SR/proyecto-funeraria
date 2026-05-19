@@ -17,6 +17,7 @@ router.post('/alta-cliente', asyncHandler(Ctrl.crearCliente))
 router.post('/alta-cobrador', asyncHandler(Ctrl.crearCobrador))
 router.post('/nuevo-contrato', asyncHandler(Ctrl.crearContrato))
 router.post('/alta-paquete-adicional', asyncHandler(Ctrl.crearPaqueteAdicional))
+router.post('/nueva-ruta-cobro', asyncHandler(Ctrl.crearRutaCobro))
 router.put('/baja-cliente/:id', asyncHandler(Ctrl.darBajaCliente))
 
 

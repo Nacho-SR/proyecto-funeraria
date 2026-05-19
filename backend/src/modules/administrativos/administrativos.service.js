@@ -317,6 +317,28 @@ export class AdministrativosService {
     }
   }
 
+  async crearRutaCobro(data) {
+    let detallesInfo = []
+    if (data.detalles && data.detalles.length > 0) {
+      for (const detalle of data.detalles) {
+        const contrato = await this.repo.findContratoById(detalle.contratos_id)
+        if (contrato) {
+          detallesInfo.push(detalle)
+        }
+      }
+    }
+    delete data.detalles
+
+    const rutaCobro = {
+      ...data,
+      estado: 'asignada',
+      activo: data.activo ?? true,
+      fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+    }
+    return await this.repo.crearRutaCobro(rutaCobro, detallesInfo)
+  }
+
   async darBajaCliente(clienteId) {
     const cliente = await this.repo.findClienteById(clienteId)
     if (!cliente) {

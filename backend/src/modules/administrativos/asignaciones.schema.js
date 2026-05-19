@@ -37,6 +37,12 @@ export const direccionesCobroSchema = z.object({
   horario_atencion: z.string().min(5)
 })
 
+export const detallesRutaCobroSchema = z.object({
+  contratos_id: z.string().min(3),
+  direccion_cobro_id: z.string().min(3),
+  orden_visita: z.number().positive()
+})
+
 export const paqueteSchema = z.object({
   nombre: z.string().min(3),
   descripcion: z.string().min(10),
@@ -97,12 +103,11 @@ export const updateContratoSchema = z.object({
   frecuencia_pago: z.enum(['semanal', 'quincenal', 'mensual']).optional(),
 }).strict()
 
-export const createAsignacionCobroSchema = z.object({
-  cobradorID: z.string(),
-  clientes: z.array(z.object({
-    clienteID: z.string(),
-    contratoID: z.string(),
-  }))
+export const nuevaRutaCobroSchema = z.object({
+  cobradores_id: z.string(),
+  nombre: z.string().min(3),
+  periodicidad: z.enum(['semanal', 'quincenal', 'mensual']),
+  detalles: z.array(detallesRutaCobroSchema)
 })
 
 export const updateAsignacionCobroSchema = z.object({

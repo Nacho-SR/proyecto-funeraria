@@ -248,7 +248,7 @@ export class AdministrativosRepository {
 
   async asignarAdicionalesAContrato(adicionales_contrato) {
     adicionales_contrato.adicionalesInfo.forEach(async adicional => {
-      const contratoAdicional = await db.collection("contrato_adicional").doc()
+      const contratoAdicional = await db.collection("contrato_adicionales").doc()
       await contratoAdicional.set({
         contrato_id: adicionales_contrato.contrato_id,
         adicional_id: adicional.adicional_id,
@@ -276,8 +276,20 @@ export class AdministrativosRepository {
   }
 
   async asignarDireccionCobroAContrato(direccion_cobro_contrato) {
-    const contratoDireccionCobro = await db.collection("contrato_direccion_cobro").doc()
+    const contratoDireccionCobro = await db.collection("direcciones_cobro").doc()
     await contratoDireccionCobro.set(direccion_cobro_contrato)
+  }
+
+  async crearRutaCobro(data, detallesInfo) {
+    const rutaCobro = await db.collection("ruta_cobros").doc()
+    detallesInfo.forEach(async detalle => {
+      await rutaCobro.set({
+        ...data,
+        contratos_id: detalle.contratos_id,
+        direccion_cobro_id: detalle.direccion_cobro_id,
+        orden_visita: detalle.orden_visita
+      })
+    })
   }
 
   async buscarUltimoNumeroContrato() {

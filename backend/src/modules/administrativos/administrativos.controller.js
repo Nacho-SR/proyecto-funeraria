@@ -48,6 +48,12 @@ export const crearPaqueteAdicional = async (req, res) => {
   res.status(201).json(created)
 }
 
+export const crearRutaCobro = async (req, res) => {
+  const doc = nuevaRutaCobroSchema.parse(req.body)
+  const created = await service.crearRutaCobro(doc)
+  res.status(201).json(created)
+}
+
 export const darBajaCliente = async (req, res) => {
   const clienteId = req.params.id
   try {
