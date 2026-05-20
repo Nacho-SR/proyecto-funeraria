@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import clienteSchema from 'backend/src/modules/administrativos'
 
-export const pagoSchema = ({
+export const pagoSchema = z.object({
     contratoID: z.string().min(1),
     creadoPor: z.string().min(1),
     estatus: z.string().min(3),
