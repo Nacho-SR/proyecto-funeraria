@@ -1,7 +1,9 @@
 /*
   * Módulo de administrativos - Repositorio
 */
+import { ca } from 'zod/locales'
 import { admin, db } from '../../config/firebase.js'
+import { email } from 'zod'
 
 export class AdministrativosRepository {
 
@@ -9,37 +11,43 @@ export class AdministrativosRepository {
   async findUserByEmail(email) {
     const usua = await db.collection("usuarios").where('email', '==', email).limit(1).get()
     if (usua.empty) return null
-    return { id: usua.docs[0].id, ...usua.docs[0].data() }
+    return { usuarios_id: usua.docs[0].id, ...usua.docs[0].data() }
+  }
+
+  async findUserById(id) {
+    const userDoc = await db.collection("usuarios").doc(id).get()
+    if (!userDoc.exists) return null
+    return { usuarios_id: userDoc.id, ...userDoc.data() }
   }
   
   async findClienteById(id) {
     const clienteDoc = await db.collection("clientes").doc(id).get()
     if (!clienteDoc.exists) return null
-    return { cliente_id: clienteDoc.id, ...clienteDoc.data() }
+    return { clientes_id: clienteDoc.id, ...clienteDoc.data() }
   }
 
   async findPaqueteById(id) {
     const paqueteDoc = await db.collection("paquetes").doc(id).get()
     if (!paqueteDoc.exists) return null
-    return { paquete_id: paqueteDoc.id, ...paqueteDoc.data() }
+    return { paquetes_id: paqueteDoc.id, ...paqueteDoc.data() }
   }
 
   async findAdicionalById(id) {
     const adicionalDoc = await db.collection("adicionales").doc(id).get()
     if (!adicionalDoc.exists) return null
-    return { adicional_id: adicionalDoc.id, ...adicionalDoc.data() }
+    return { adicionales_id: adicionalDoc.id, ...adicionalDoc.data() }
   }
 
   async findPaqueteByName(nombre) {
     const paquete = await db.collection("paquetes").where('nombre', '==', nombre).limit(1).get()
     if (paquete.empty) return null
-    return { paquete_id: paquete.docs[0].id, ...paquete.docs[0].data() }
+    return { paquetes_id: paquete.docs[0].id, ...paquete.docs[0].data() }
   }
 
   async findAdicionalByName(nombre) {
     const adicional = await db.collection("adicionales").where('nombre', '==', nombre).limit(1).get()
     if (adicional.empty) return null
-    return { adicional_id: adicional.docs[0].id, ...adicional.docs[0].data() }
+    return { adicionales_id: adicional.docs[0].id, ...adicional.docs[0].data() }
   }
 
   async findPromoByIds(paquete_id, adicional_id) {
@@ -49,7 +57,67 @@ export class AdministrativosRepository {
       .limit(1)
       .get()
     if (promo.empty) return null
-    return { promo_id: promo.docs[0].id, ...promo.docs[0].data() }
+    return { paquete_adicionales_id: promo.docs[0].id, ...promo.docs[0].data() }
+  }
+
+  async findContratoById(id) {
+    const contratoDoc = await db.collection("contratos").doc(id).get()
+    if (!contratoDoc.exists) return null
+    return { contratos_id: contratoDoc.id, ...contratoDoc.data() }
+  }
+
+  async findRutaCobroById(id) {
+    const rutaCobroDoc = await db.collection("ruta_cobros").doc(id).get()
+    if (!rutaCobroDoc.exists) return null
+    return { ruta_cobros_id: rutaCobroDoc.id, ...rutaCobroDoc.data() }
+  }
+
+  async obtenerDetallesCobro(rutaCobroId) {
+    const detallesSnapshot = await db.collection("detalle_ruta_cobros")
+      .where('ruta_cobros_id', '==', rutaCobroId)
+      .get()
+
+    detalles = []
+    detallesSnapshot.forEach(detalle => {
+      const contratoInfo = this.findContratoById(detalle.contratos_id)
+      const clienteInfo = this.clienteInfoById(contratoInfo.clientes_id)
+      const direccionCobroInfo = await db.collection("direcciones_cobro").doc(detalle.direccion_cobro_id)
+      delete direccionCobroInfo.contrato_id
+      const obj = {
+        cliente: {...clienteInfo},
+        direccionCobro: {...direccionCobroInfo}
+      }
+      detalles.push(obj)
+    })
+    return detalles
+  }
+
+  async clienteInfoById(id) {
+    const clienteDoc = await db.collection("clientes").doc(id).get()
+    if (!clienteDoc.exists) return null
+    const userDoc = await db.collection("usuarios").doc(clienteDoc.usuarios_id).get()
+    if (!userDoc.exists) return null
+    const clienteInfo = {
+      cliente: {
+        clientes_id: clienteDoc.id,
+        calle: clienteDoc.calle,
+        colonia: clienteDoc.colonia,
+        num_casa: clienteDoc.num_casa,
+        telefono: clienteDoc.telefono
+      },
+      usuario: {
+        usuarios_id: userDoc.id,
+        nombre: userDoc.nombre,
+        apaterno: userDoc.apaterno,
+        amaterno: userDoc.amaterno,
+        email: userDoc.email
+      }
+    }
+    return clienteInfo
+  }
+
+  async detallesCobroById(id) {
+    const 
   }
 
   async listarClientesActivos() {
@@ -180,7 +248,7 @@ export class AdministrativosRepository {
     const rutasSnapshot = await db.collection('ruta_cobros')
       .where('activo', '==', true)
       .get();
-    return rutasSnapshot.docs.map(doc => ({ ruta_cobro_id: doc.id, ...doc.data() }));
+    return rutasSnapshot.docs.map(doc => ({ ruta_cobros_id: doc.id, ...doc.data() }));
   }
 
   async findClienteByEmail(email) {
@@ -288,16 +356,20 @@ export class AdministrativosRepository {
     await contratoDireccionCobro.set(direccion_cobro_contrato)
   }
 
-  async crearRutaCobro(data, detallesInfo) {
-    const rutaCobro = await db.collection("ruta_cobros").doc()
+  async asignarDetallesRutaCobro(rutaCobroId, detallesInfo) {
     detallesInfo.forEach(async detalle => {
-      await rutaCobro.set({
-        ...data,
-        contratos_id: detalle.contratos_id,
-        direccion_cobro_id: detalle.direccion_cobro_id,
-        orden_visita: detalle.orden_visita
+      const detalleDoc = await db.collection("detalle_ruta_cobros").doc()
+      await detalleDoc.set({
+        ...detalle,
+        ruta_cobros_id: rutaCobroId
       })
     })
+  }
+
+  async crearRutaCobro(data) {
+    const rutaCobro = await db.collection("ruta_cobros").doc()
+    await rutaCobro.set(data)
+    return { ruta_cobros_id: rutaCobro.id, ...data }
   }
 
   async buscarUltimoNumeroContrato() {

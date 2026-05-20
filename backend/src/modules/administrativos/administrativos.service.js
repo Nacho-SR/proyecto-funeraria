@@ -33,6 +33,15 @@ export class AdministrativosService {
     return await this.repo.listarRutasCobro()
   }
 
+  async obtenerDetallesCobro(rutaCobroId) {
+    const rutaCobro = await this.repo.findRutaCobroById(rutaCobroId)
+    if (!rutaCobro) {
+      throw new ApiError(404, 'Ruta de cobro no encontrada')
+    }
+    const detalles = await this.repo.obtenerDetallesCobro(rutaCobroId)
+    return detalles
+  }
+
   /* Genera el siguiente num_documento con formato XX-XXXXX.
   * @param {string|null} ultimoNumDocumento - El último num_documento en la BD (ej. "25-00105"), o null si es el primero.
   * @param {Date|string|number} fechaCreacion - Fecha de creación del nuevo documento (para obtener el año).
@@ -340,7 +349,11 @@ export class AdministrativosService {
       fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
       fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
     }
-    return await this.repo.crearRutaCobro(rutaCobro, detallesInfo)
+
+    const createdRutaCobro = await this.repo.crearRutaCobro(rutaCobro)
+
+    await this.repo.asignarDetallesRutaCobro(createdRutaCobro.ruta_cobros_id, detallesInfo)
+    return createdRutaCobro
   }
 
   async darBajaCliente(clienteId) {
