@@ -77,47 +77,55 @@ export class AdministrativosRepository {
       .where('ruta_cobros_id', '==', rutaCobroId)
       .get()
 
-    detalles = []
-    detallesSnapshot.forEach(detalle => {
-      const contratoInfo = this.findContratoById(detalle.contratos_id)
-      const clienteInfo = this.clienteInfoById(contratoInfo.clientes_id)
-      const direccionCobroInfo = await db.collection("direcciones_cobro").doc(detalle.direccion_cobro_id)
-      delete direccionCobroInfo.contrato_id
-      const obj = {
-        cliente: {...clienteInfo},
-        direccionCobro: {...direccionCobroInfo}
+    // 1. Convertimos los docs del snapshot en un array de promesas
+    const promesasDetalles = detallesSnapshot.docs.map(async (detalleDoc) => {
+      const detalle = detalleDoc.data();
+
+      const contratoInfo = await this.findContratoById(detalle.contratos_id);
+      const clienteInfo = await this.clienteInfoById(contratoInfo.clientes_id);
+      
+      const direccionCobroDoc = await db.collection("direcciones_cobro").doc(detalle.direccion_cobro_id).get();
+      const direccionCobroInfo = direccionCobroDoc.data();
+
+      if (direccionCobroInfo) {
+        delete direccionCobroInfo.contrato_id;
       }
-      detalles.push(obj)
-    })
-    return detalles
+
+      return {
+        ...clienteInfo,
+        direccionCobro: { ...direccionCobroInfo }
+      };
+    });
+
+    const detalles = await Promise.all(promesasDetalles);
+    return detalles;
   }
 
   async clienteInfoById(id) {
     const clienteDoc = await db.collection("clientes").doc(id).get()
     if (!clienteDoc.exists) return null
-    const userDoc = await db.collection("usuarios").doc(clienteDoc.usuarios_id).get()
+    const userDoc = await db.collection("usuarios").doc(clienteDoc.data().usuarios_id).get()
     if (!userDoc.exists) return null
+    
+    const userData = userDoc.data()
+    const clienteData = clienteDoc.data()
     const clienteInfo = {
       cliente: {
         clientes_id: clienteDoc.id,
-        calle: clienteDoc.calle,
-        colonia: clienteDoc.colonia,
-        num_casa: clienteDoc.num_casa,
-        telefono: clienteDoc.telefono
+        calle: clienteData.calle,
+        colonia: clienteData.colonia,
+        num_casa: clienteData.num_casa,
+        telefono: clienteData.telefono
       },
       usuario: {
         usuarios_id: userDoc.id,
-        nombre: userDoc.nombre,
-        apaterno: userDoc.apaterno,
-        amaterno: userDoc.amaterno,
-        email: userDoc.email
+        nombre: userData.nombre,
+        apaterno: userData.apaterno,
+        amaterno: userData.amaterno,
+        email: userData.email
       }
     }
     return clienteInfo
-  }
-
-  async detallesCobroById(id) {
-    const 
   }
 
   async listarClientesActivos() {
