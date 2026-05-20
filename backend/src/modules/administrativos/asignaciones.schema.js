@@ -106,6 +106,7 @@ export const updateContratoSchema = z.object({
 export const nuevaRutaCobroSchema = z.object({
   cobradores_id: z.string(),
   nombre: z.string().min(3),
+  fecha_inicio: z.string().refine(val => !isNaN(Date.parse(val)), { message: 'Fecha inválida' }),
   periodicidad: z.enum(['semanal', 'quincenal', 'mensual']),
   detalles: z.array(detallesRutaCobroSchema)
 })
