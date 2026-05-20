@@ -1,17 +1,16 @@
 import { z } from 'zod'
-import clienteSchema from 'backend/src/modules/administrativos'
+import { createClientesSchema } from '../clientes/clientes.schema.js'
 
 export const pagoSchema = z.object({
     contratoID: z.string().min(1),
     creadoPor: z.string().min(1),
     estatus: z.string().min(3),
-    fechaCreacion: z.date().safeParse(new Date()),
-    fechaPago: z.date(),
+    fechaPago: z.string(),
     monto: z.number().positive()
 })
 
 export const nuevoPagoSchema = z.object({
-    clientes: clienteSchema,
+    clientes: createClientesSchema,
     pagos: pagoSchema
 })
 

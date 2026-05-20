@@ -1,7 +1,6 @@
-import { nuevoPagoSchema } from  'backend/src/modules/pagos/pagos.schema.js'
-import { pagoSchema } from  'backend/src/modules/pagos/pagos.schema.js'
-import { ClientesService } from './clientes.service.js'
-import { ApiError } from '../../shared/utils/apiError.js'
+import { nuevoPagoSchema } from '../pagos/pagos.schema.js';
+import { ClientesService } from './clientes.service.js';
+import { ApiError } from '../../shared/utils/apiError.js';
 
 const service = new ClientesService()
 

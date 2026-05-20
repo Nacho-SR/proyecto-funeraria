@@ -3,13 +3,17 @@ import administrativosRoutes from '../modules/administrativos/administrativos.ro
 import authRoutes from './auth.js'
 import adminRoutes from './admin.js'
 import usuariosRoutes from './usuarios.js'
+import clientesRoutes from '../modules/clientes/clientes.routes.js'
 
 const routes = Router()
 
 routes.get('/health', (_, res) => res.json({ ok: true }))
+
+// Las rutas conectadas correctamente con la variable "routes"
 routes.use('/administrativos', administrativosRoutes)
 routes.use('/auth', authRoutes)
 routes.use('/admin', adminRoutes)
 routes.use('/usuarios', usuariosRoutes)
+routes.use('/clientes', clientesRoutes) // <-- Corregido aquí
 
 export default routes
