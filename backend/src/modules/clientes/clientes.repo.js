@@ -16,6 +16,17 @@ export class ClientesRepository {
     return { id: beneficiario.id, ...data }
   }
 
+  async findPagoByContract(contrato) {
+    console.log('Buscando pago por contrato: ', contrato)
+    const pago = await db.collection("pagos").where('contratoID', '==', contrato).limit(1).get()
+    if (pago.empty) return null
+    return { id: pago.id, ...pago.docs[0].data() }
+  }
 
+  async newPago(data) {
+    const pago = await db.collection("pagos").doc()
+    await pago.set(data)
+    return { id: pago.id, ...data }
+  }
 
 }
