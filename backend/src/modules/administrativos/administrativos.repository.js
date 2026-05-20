@@ -175,6 +175,14 @@ export class AdministrativosRepository {
     return resultado
   }
 
+  async listarRutasCobro() {
+    // 1. Rutas de cobro activas
+    const rutasSnapshot = await db.collection('ruta_cobros')
+      .where('activo', '==', true)
+      .get();
+    return rutasSnapshot.docs.map(doc => ({ ruta_cobro_id: doc.id, ...doc.data() }));
+  }
+
   async findClienteByEmail(email) {
     const cliente = await db.collection("clientes").where('email', '==', email).limit(1).get()
     if (cliente.empty) return null

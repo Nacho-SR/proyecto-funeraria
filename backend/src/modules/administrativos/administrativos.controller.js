@@ -54,6 +54,11 @@ export const crearRutaCobro = async (req, res) => {
   res.status(201).json(created)
 }
 
+export const listarRutasCobro = async (req, res) => {
+  const rutas = await service.listarRutasCobro()
+  res.status(200).json({ rutas })
+}
+
 export const darBajaCliente = async (req, res) => {
   const clienteId = req.params.id
   try {
