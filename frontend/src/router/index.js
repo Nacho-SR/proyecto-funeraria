@@ -25,12 +25,15 @@ const routes = [
   { path: '/lista-contratos', name: 'lista-contratos', component: () => import('../views/ListaContratosView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/lista-pagos', name: 'lista-pagos', component: () => import('../views/ListaPagosView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/validacion-cobros', name: 'validacion-cobros', component: () => import('../views/ValidacionCobrosView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
+  { path: '/modulo-pagos', name: 'modulo-pagos', component: () => import('../views/ModuloPagosView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
+
   // Altas (admin)
   { path: '/alta-cliente', name: 'alta-cliente', component: () => import('../views/AltaClienteView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/alta-paquete', name: 'alta-paquete', component: () => import('../views/AltaPaqueteView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/alta-cobrador', name: 'alta-cobrador', component: () => import('../views/AltaCobradorView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/alta-contrato', name: 'alta-contrato', component: () => import('../views/AltaContratoView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/captura-pago', name: 'captura-pago', component: () => import('../views/CapturaPagoView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
+
   // Edits (admin)
   { path: '/editar-cliente/:id', name: 'editar-cliente', component: () => import('../views/EditarClienteView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/editar-cobrador/:id', name: 'editar-cobrador', component: () => import('../views/EditarCobradorView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
