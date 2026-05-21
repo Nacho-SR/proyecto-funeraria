@@ -14,7 +14,7 @@ const routes = [
   // Dashboards
   { path: '/dashboard-admin', name: 'dashboard-admin', component: () => import('../views/AdminDashboard.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/dashboard-usuario', name: 'dashboard-usuario', component: () => import('../views/UsuarioDashboard.vue'), meta: { requiresAuth: true } },
-
+  { path: '/dashboard', name: 'dashboard', component: () => import('../views/DashboardView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   // Perfil
   { path: '/perfil', name: 'perfil', component: () => import('../views/PerfilView.vue'), meta: { requiresAuth: true } },
 
