@@ -1,0 +1,24 @@
+/*
+  Controlador HTTP para operaciones sobre cobradores.
+*/
+import { CobradoresRepository } from './cobradores.repository.js'
+import { ApiError } from '../../shared/utils/apiError.js'
+
+const repo = new CobradoresRepository()
+
+export const darDeBaja = async (req, res) => {
+  if (req.user.role !== 'admin') {
+    throw new ApiError(403, 'Solo administradores pueden dar de baja cobradores')
+  }
+
+  const id = req.params.id?.trim()
+  if (!id) {
+    throw new ApiError(400, 'Identificador de cobrador requerido')
+  }
+
+  const resultado = await repo.darBajaLogica(id)
+  res.status(200).json({
+    message: 'Cobrador dado de baja correctamente',
+    ...resultado
+  })
+}
