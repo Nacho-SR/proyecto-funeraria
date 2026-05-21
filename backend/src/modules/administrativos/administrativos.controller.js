@@ -2,7 +2,12 @@
   Controlador para la gestión de administrativos, incluyendo el registro de usuarios.
 */
 import { createClientesSchema } from '../clientes/clientes.schema.js'
-import { nuevoClienteSchema, nuevoCobradorSchema, createPaqueteAdicionalSchema, createContratoSchema } from './asignaciones.schema.js'
+import { nuevoClienteSchema,
+          nuevoCobradorSchema,
+          createPaqueteAdicionalSchema,
+          createContratoSchema,
+          nuevaRutaCobroSchema
+        } from './asignaciones.schema.js'
 import { createCobradoresSchema } from '../cobradores/cobradores.schema.js'
 import { AdministrativosService } from './administrativos.service.js'
 import { ApiError } from '../../shared/utils/apiError.js'
@@ -22,6 +27,12 @@ export const listarCobradoresActivos = async (req, res) => {
 export const listarProductosActivos = async (req, res) => {
   const productosActivos = await service.listarProductosActivos()
   res.status(200).json({ productosActivos })
+}
+
+export const obtenerDetallesCobro = async (req, res) => {
+  const rutaCobroId = req.params.id
+  const detalles = await service.obtenerDetallesCobro(rutaCobroId)
+  res.status(200).json({ detalles })
 }
 
 export const crearCliente = async (req, res) => {
@@ -52,6 +63,11 @@ export const crearRutaCobro = async (req, res) => {
   const doc = nuevaRutaCobroSchema.parse(req.body)
   const created = await service.crearRutaCobro(doc)
   res.status(201).json(created)
+}
+
+export const listarRutasCobro = async (req, res) => {
+  const rutas = await service.listarRutasCobro()
+  res.status(200).json({ rutas })
 }
 
 export const darBajaCliente = async (req, res) => {

@@ -29,6 +29,19 @@ export class AdministrativosService {
     return await this.repo.listarProductosActivos()
   }
 
+  async listarRutasCobro() {
+    return await this.repo.listarRutasCobro()
+  }
+
+  async obtenerDetallesCobro(rutaCobroId) {
+    const rutaCobro = await this.repo.findRutaCobroById(rutaCobroId)
+    if (!rutaCobro) {
+      throw new ApiError(404, 'Ruta de cobro no encontrada')
+    }
+    const detalles = await this.repo.obtenerDetallesCobro(rutaCobroId)
+    return detalles
+  }
+
   /* Genera el siguiente num_documento con formato XX-XXXXX.
   * @param {string|null} ultimoNumDocumento - El último num_documento en la BD (ej. "25-00105"), o null si es el primero.
   * @param {Date|string|number} fechaCreacion - Fecha de creación del nuevo documento (para obtener el año).
@@ -123,13 +136,13 @@ export class AdministrativosService {
   }
 
   async crearNuevoContrato(data) {
-    
     if (!data.clientes_id && !data.nuevo_cliente) {
       throw new ApiError(400, 'Debe proporcionar clientes_id o nuevo_cliente')
     }
     if (data.nuevo_cliente) {
       const nuevoCliente = await this.crearNuevoCliente(data.nuevo_cliente)
-      data.clientes_id = nuevoCliente.id
+      data.clientes_id = nuevoCliente.cliente_id
+      console.log('Nuevo cliente creado con ID:', data.clientes_id)
       delete data.nuevo_cliente
     }
 
@@ -150,13 +163,13 @@ export class AdministrativosService {
     delete data.direccion_cobro
 
     if (adicionalesInfo && adicionalesInfo.length > 0) {
-      for (const adicionalesInfo of data.adicionales) {
-        const adicionalSnap = await this.repo.findAdicionalById(adicionalesInfo.adicional_id)
+      for (const adicional of adicionalesInfo) {
+        const adicionalSnap = await this.repo.findAdicionalById(adicional.adicional_id)
         if (!adicionalSnap) {
           throw new ApiError(404, 'Adicional no encontrado, no se puede crear contrato')
         }
 
-        let precioAdicional = adicionalesInfo.precio
+        let precioAdicional = adicional.precio
         precioFinal += precioAdicional
       }
     }
@@ -336,7 +349,11 @@ export class AdministrativosService {
       fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
       fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
     }
-    return await this.repo.crearRutaCobro(rutaCobro, detallesInfo)
+
+    const createdRutaCobro = await this.repo.crearRutaCobro(rutaCobro)
+
+    await this.repo.asignarDetallesRutaCobro(createdRutaCobro.ruta_cobros_id, detallesInfo)
+    return createdRutaCobro
   }
 
   async darBajaCliente(clienteId) {
