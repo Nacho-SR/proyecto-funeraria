@@ -29,4 +29,14 @@ export class ClientesRepository {
     return { id: pago.id, ...data }
   }
 
+  async getPagosByClient(cliente) {
+    console.log('Buscando historial de pagos:', cliente)
+    const pagos = await db.collection("pagos").where('clienteID', '==', clienteID).orderBy('fechaPago', 'desc').get()
+    if (pagos.empty) return []
+    return pagos.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+  }
+
 }

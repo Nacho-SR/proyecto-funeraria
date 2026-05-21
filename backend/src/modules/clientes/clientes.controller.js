@@ -9,3 +9,9 @@ export const nuevoPago = async (req, res) => {
     const created = await service.nuevoPago(doc)
     res.status(201).json(created)
 }
+
+export const obtenerPagosPorCliente = async (req, res) => {
+    const { clienteID } = req.params
+    const historial = await service.obtenerHistorialCliente(clienteID)
+    res.status(200).json(historial)
+}

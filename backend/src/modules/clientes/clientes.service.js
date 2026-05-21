@@ -23,4 +23,22 @@ export class ClientesService {
 
         return { nuevoPago }
     }
+
+    async obtenerPagosCliente(clienteID) {
+        console.log('Procesando historial del cliente:', clienteID)
+
+        const listaPagos = await this.repo.getPagosByCliente(clienteID)
+
+        const totalPagado = listaPagos.reduce((acumulado, pago) => acumulado + (pago.monto || 0), 0)
+
+        return {
+            clienteID,
+            resumen: {
+                cantidadPagos: listaPagos.length,
+                montoTotalHistorico: totalPagado,
+                ultimoPago: listaPagos[0] ? listaPagos[0].fechaPago : null
+            },
+            pagos: listaPagos
+        }
+    }
 }

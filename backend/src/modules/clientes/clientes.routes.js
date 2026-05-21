@@ -8,5 +8,6 @@ const router = Router()
 console.log("🛠️ Cargando rutas de clientes...")
 
 router.post('/nuevo-pago', asyncHandler(ctrl.nuevoPago))
+router.get('/:clienteID/pagos', asyncHandler(ctrl.obtenerPagosPorCliente))
 
 export default router
