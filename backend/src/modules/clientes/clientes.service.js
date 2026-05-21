@@ -24,7 +24,7 @@ export class ClientesService {
         return { nuevoPago }
     }
 
-    async obtenerPagosCliente(clienteID) {
+    async obtenerHistorialCliente(clienteID) {
         console.log('Procesando historial del cliente:', clienteID)
 
         const listaPagos = await this.repo.getPagosByCliente(clienteID)
