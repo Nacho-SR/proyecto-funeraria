@@ -1,0 +1,162 @@
+<script setup>
+import { ref, reactive, onMounted } from 'vue'
+import { pagoSchema, pagoModel, ESTATUS_PAGO } from '@/schemas'
+import { pagoService } from '@/services/pago.service'
+import { contratoService } from '@/services/contrato.service'
+
+const emit = defineEmits(['guardado', 'cancelado'])
+
+const form = reactive(pagoModel())
+const contratos = ref([])
+const errores = ref({})
+const enviando = ref(false)
+const cargando = ref(true)
+const mensajeExito = ref('')
+const mensajeError = ref('')
+
+onMounted(async () => {
+  try {
+    const { data } = await contratoService.listar()
+    contratos.value = data?.contratos ?? data ?? []
+  } catch {
+    mensajeError.value = 'Error al cargar la lista de contratos'
+  } finally {
+    cargando.value = false
+  }
+})
+
+async function validar() {
+  errores.value = {}
+  try {
+    await pagoSchema.validate(form, { abortEarly: false })
+    return true
+  } catch (err) {
+    if (err.inner) {
+      err.inner.forEach((e) => {
+        errores.value[e.path] = e.message
+      })
+    }
+    return false
+  }
+}
+
+async function guardar() {
+  mensajeExito.value = ''
+  mensajeError.value = ''
+
+  const esValido = await validar()
+  if (!esValido) return
+
+  enviando.value = true
+  try {
+    const { data } = await pagoService.crear({
+      contratoID: form.contratoID,
+      fechaPago: form.fechaPago,
+      monto: form.monto,
+      estatus: form.estatus,
+    })
+    mensajeExito.value = 'Pago registrado correctamente'
+    emit('guardado', data)
+    limpiar()
+  } catch (err) {
+    mensajeError.value = err.response?.data?.message || 'Error al guardar el pago'
+  } finally {
+    enviando.value = false
+  }
+}
+
+function limpiar() {
+  Object.assign(form, pagoModel())
+  errores.value = {}
+}
+
+function cancelar() {
+  limpiar()
+  emit('cancelado')
+}
+</script>
+
+<template>
+  <div v-if="cargando" class="text-center py-4">
+    <div class="spinner-border text-secondary" role="status"></div>
+  </div>
+
+  <form v-else @submit.prevent="guardar" novalidate>
+    <div v-if="mensajeExito" class="alert alert-success" role="alert">
+      {{ mensajeExito }}
+    </div>
+    <div v-if="mensajeError" class="alert alert-danger" role="alert">
+      {{ mensajeError }}
+    </div>
+
+    <h5 class="mb-3">Datos del pago</h5>
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label for="contratoID" class="form-label">Contrato <span class="text-danger">*</span></label>
+        <select
+          id="contratoID"
+          v-model="form.contratoID"
+          class="form-select"
+          :class="{ 'is-invalid': errores.contratoID }"
+        >
+          <option :value="null" disabled>Selecciona un contrato</option>
+          <option v-for="c in contratos" :key="c.contratoID ?? c.id" :value="c.contratoID ?? c.id">
+            {{ c.numContrato ?? `Contrato ${c.contratoID ?? c.id}` }}
+          </option>
+        </select>
+        <div class="invalid-feedback">{{ errores.contratoID }}</div>
+      </div>
+      <div class="col-md-6">
+        <label for="estatus" class="form-label">Estatus <span class="text-danger">*</span></label>
+        <select
+          id="estatus"
+          v-model="form.estatus"
+          class="form-select"
+          :class="{ 'is-invalid': errores.estatus }"
+        >
+          <option v-for="e in ESTATUS_PAGO" :key="e" :value="e">{{ e }}</option>
+        </select>
+        <div class="invalid-feedback">{{ errores.estatus }}</div>
+      </div>
+    </div>
+
+    <h5 class="mb-3">Monto y fecha</h5>
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label for="monto" class="form-label">Monto <span class="text-danger">*</span></label>
+        <input
+          id="monto"
+          v-model.number="form.monto"
+          type="number"
+          class="form-control"
+          :class="{ 'is-invalid': errores.monto }"
+          min="0"
+          step="0.01"
+          placeholder="0.00"
+        />
+        <div class="invalid-feedback">{{ errores.monto }}</div>
+      </div>
+      <div class="col-md-6">
+        <label for="fechaPago" class="form-label">Fecha de pago <span class="text-danger">*</span></label>
+        <input
+          id="fechaPago"
+          v-model="form.fechaPago"
+          type="date"
+          class="form-control"
+          :class="{ 'is-invalid': errores.fechaPago }"
+        />
+        <div class="invalid-feedback">{{ errores.fechaPago }}</div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+      <button type="button" class="btn btn-outline-secondary" @click="cancelar" :disabled="enviando">
+        Cancelar
+      </button>
+      <button type="submit" class="btn btn-custom" :disabled="enviando">
+        <span v-if="enviando" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        {{ enviando ? 'Guardando...' : 'Registrar pago' }}
+      </button>
+    </div>
+  </form>
+</template>
