@@ -17,7 +17,7 @@ async function cargar() {
   error.value = ''
   try {
     const { data } = await clienteService.listar()
-    clientes.value = Array.isArray(data) ? data : data.data ?? []
+    clientes.value = Array.isArray(data.clientes) ? data.clientes : data.data ?? []
   } catch {
     error.value = 'No se pudo cargar la lista de clientes.'
   } finally {
@@ -35,8 +35,8 @@ async function confirmarBaja() {
   exito.value = ''
   error.value = ''
   try {
-    await clienteService.eliminar(clienteSeleccionado.value.clienteID)
-    exito.value = `Cliente "${clienteSeleccionado.value.nombre}" dado de baja correctamente.`
+    await clienteService.eliminar(clienteSeleccionado.value.cliente.cliente_id)
+    exito.value = `Cliente "${clienteSeleccionado.value.usuario.nombre} ${clienteSeleccionado.value.usuario.apaterno}" dado de baja correctamente.`
     modalVisible.value = false
     await cargar()
   } catch {
@@ -82,7 +82,9 @@ onMounted(cargar)
           <thead class="table-header-custom">
             <tr>
               <th>#</th>
-              <th>Nombre completo</th>
+              <th>Nombre</th>
+              <th>Apellido Paterno</th>
+              <th>Apellido Materno</th>
               <th>Teléfono</th>
               <th>Email</th>
               <th>Colonia</th>
@@ -93,14 +95,16 @@ onMounted(cargar)
           <tbody>
             <tr
               v-for="c in clientes"
-              :key="c.clienteID"
+              :key="c.cliente.cliente_id"
               :class="{ 'table-row-inactive': c.activo === false }"
             >
-              <td>{{ c.clienteID }}</td>
-              <td class="fw-semibold">{{ c.nombre }} {{ c.apaterno }} {{ c.amaterno }}</td>
-              <td>{{ c.telefono }}</td>
-              <td>{{ c.email || '—' }}</td>
-              <td>{{ c.colonia }}</td>
+              <td>{{ c.cliente.cliente_id }}</td>
+              <td class="fw-semibold">{{ c.usuario.nombre }}</td>
+              <td class="fw-semibold">{{ c.usuario.apaterno }}</td>
+              <td class="fw-semibold">{{ c.usuario.amaterno }}</td>
+              <td>{{ c.cliente.telefono }}</td>
+              <td>{{ c.usuario.email || '—' }}</td>
+              <td>{{ c.cliente.colonia }}</td>
               <td>
                 <span
                   class="badge"
@@ -110,15 +114,25 @@ onMounted(cargar)
                 </span>
               </td>
               <td class="text-end">
-                <button
-                  v-if="c.activo !== false"
-                  class="btn btn-sm btn-outline-danger"
-                  @click="pedirBaja(c)"
-                  title="Dar de baja"
-                >
-                  🗑 Dar de baja
-                </button>
-                <span v-else class="text-muted small">—</span>
+                <div class="d-flex gap-2 justify-content-end">
+                  <router-link
+                    v-if="c.activo !== false"
+                    :to="`/editar-cliente/${c.cliente.cliente_id}`"
+                    class="btn btn-sm btn-outline-secondary"
+                    title="Editar"
+                  >
+                  Editar
+                  </router-link>
+                  <button
+                    v-if="c.activo !== false"
+                    class="btn btn-sm btn-outline-danger"
+                    @click="pedirBaja(c)"
+                    title="Dar de baja"
+                  >
+                    🗑 Dar de baja
+                  </button>
+                  <span v-else class="text-muted small">—</span>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -129,7 +143,7 @@ onMounted(cargar)
     <ConfirmModal
       :show="modalVisible"
       titulo="Baja lógica de cliente"
-      :mensaje="`¿Dar de baja al cliente &quot;${clienteSeleccionado?.nombre} ${clienteSeleccionado?.apaterno}&quot;? El registro se conserva pero quedará inactivo.`"
+      :mensaje="`¿Dar de baja al cliente &quot;${clienteSeleccionado?.usuario.nombre} ${clienteSeleccionado?.usuario.apaterno}&quot;? El registro se conserva pero quedará inactivo.`"
       :cargando="procesando"
       @confirmar="confirmarBaja"
       @cancelar="modalVisible = false"

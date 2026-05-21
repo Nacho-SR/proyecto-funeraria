@@ -1,15 +1,48 @@
 <script setup>
-import { ref, reactive } from 'vue'
-import { clienteModel, clienteSchema } from '@/schemas'
+import { ref, reactive, onMounted } from 'vue'
+import { clienteSchema } from '@/schemas'
 import { clienteService } from '@/services/cliente.service'
+import { useRoute } from 'vue-router'
 
+const route = useRoute()
 const emit = defineEmits(['guardado', 'cancelado'])
 
-const form = reactive(clienteModel())
+const form = reactive({
+  nombre: '',
+  apaterno: '',
+  amaterno: '',
+  telefono: '',
+  email: '',
+  calle: '',
+  colonia: '',
+  numCasa: '',
+})
+
 const errores = ref({})
 const enviando = ref(false)
+const cargando = ref(true)
 const mensajeExito = ref('')
 const mensajeError = ref('')
+
+onMounted(async () => {
+  try {
+    const { data } = await clienteService.obtener(route.params.id)
+    Object.assign(form, {
+      nombre: data.nombre ?? '',
+      apaterno: data.apaterno ?? '',
+      amaterno: data.amaterno ?? '',
+      telefono: data.telefono ?? '',
+      email: data.email ?? '',
+      calle: data.calle ?? '',
+      colonia: data.colonia ?? '',
+      numCasa: data.numCasa ?? '',
+    })
+  } catch {
+    mensajeError.value = 'No se pudo cargar la información del cliente'
+  } finally {
+    cargando.value = false
+  }
+})
 
 async function validar() {
   errores.value = {}
@@ -36,45 +69,32 @@ async function guardar() {
   enviando.value = true
   try {
     const payload = {
-      usuario: {
-        nombre: form.nombre,
-        apaterno: form.apaterno,
-        amaterno: form.amaterno,
-        email: form.email,
-        password: form.telefono
-      },
-      cliente: {
-        telefono: form.telefono,
-        calle: form.calle,
-        colonia: form.colonia,
-        num_casa: form.numCasa
-      }
+      telefono: form.telefono,
+      calle: form.calle,
+      colonia: form.colonia,
+      numCasa: form.numCasa,
     }
-    const { data } = await clienteService.crear(payload)
-    mensajeExito.value = `Cliente registrado correctamente`
+    const { data } = await clienteService.actualizar(route.params.id, payload)
+    mensajeExito.value = 'Cliente actualizado correctamente'
     emit('guardado', data)
-    limpiar()
   } catch (err) {
-    mensajeError.value =
-      err.response?.data?.message || 'Error al guardar el cliente'
+    mensajeError.value = err.response?.data?.message || 'Error al actualizar el cliente'
   } finally {
     enviando.value = false
   }
 }
 
-function limpiar() {
-  Object.assign(form, clienteModel())
-  errores.value = {}
-}
-
 function cancelar() {
-  limpiar()
   emit('cancelado')
 }
 </script>
 
 <template>
-  <form @submit.prevent="guardar" novalidate>
+  <div v-if="cargando" class="text-center py-4">
+    <div class="spinner-border text-secondary" role="status"></div>
+  </div>
+
+  <form v-else @submit.prevent="guardar" novalidate>
     <div v-if="mensajeExito" class="alert alert-success" role="alert">
       {{ mensajeExito }}
     </div>
@@ -85,40 +105,31 @@ function cancelar() {
     <h5 class="mb-3">Datos personales</h5>
     <div class="row g-3 mb-4">
       <div class="col-md-4">
-        <label for="nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
+        <label class="form-label">Nombre</label>
         <input
-          id="nombre"
           v-model="form.nombre"
           type="text"
           class="form-control"
-          :class="{ 'is-invalid': errores.nombre }"
-          maxlength="50"
+          disabled
         />
-        <div class="invalid-feedback">{{ errores.nombre }}</div>
       </div>
       <div class="col-md-4">
-        <label for="apaterno" class="form-label">Apellido paterno <span class="text-danger">*</span></label>
+        <label class="form-label">Apellido paterno</label>
         <input
-          id="apaterno"
           v-model="form.apaterno"
           type="text"
           class="form-control"
-          :class="{ 'is-invalid': errores.apaterno }"
-          maxlength="50"
+          disabled
         />
-        <div class="invalid-feedback">{{ errores.apaterno }}</div>
       </div>
       <div class="col-md-4">
-        <label for="amaterno" class="form-label">Apellido materno</label>
+        <label class="form-label">Apellido materno</label>
         <input
-          id="amaterno"
           v-model="form.amaterno"
           type="text"
           class="form-control"
-          :class="{ 'is-invalid': errores.amaterno }"
-          maxlength="50"
+          disabled
         />
-        <div class="invalid-feedback">{{ errores.amaterno }}</div>
       </div>
     </div>
 
@@ -144,10 +155,8 @@ function cancelar() {
           v-model="form.email"
           type="email"
           class="form-control"
-          :class="{ 'is-invalid': errores.email }"
-          placeholder="ejemplo@correo.com"
+          disabled
         />
-        <div class="invalid-feedback">{{ errores.email }}</div>
       </div>
     </div>
 
@@ -195,7 +204,7 @@ function cancelar() {
       </button>
       <button type="submit" class="btn btn-custom" :disabled="enviando">
         <span v-if="enviando" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-        {{ enviando ? 'Guardando...' : 'Guardar cliente' }}
+        {{ enviando ? 'Guardando...' : 'Guardar cambios' }}
       </button>
     </div>
   </form>

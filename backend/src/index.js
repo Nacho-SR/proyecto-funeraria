@@ -11,7 +11,7 @@ app.use(helmet())
 const domains = env.CORS_ORIGIN === '*' ? '*' : env.CORS_ORIGIN.split(',')
 const corsOptions = {
   origin: domains,
-  methods: ['GET', 'POST', 'DELETE', 'PATCH'],
+  methods: ['GET', 'POST', 'DELETE', 'PATCH', 'PUT'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }
 app.use(cors(corsOptions))
