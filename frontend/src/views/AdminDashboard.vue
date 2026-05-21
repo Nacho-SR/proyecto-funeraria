@@ -12,6 +12,10 @@ const tarjetas = [
   { titulo: 'Alta Cobrador', icono: '🧑‍💼', ruta: '/alta-cobrador', desc: 'Registrar nuevo cobrador', color: '#2F4156' },
   { titulo: 'Alta Paquete', icono: '📦', ruta: '/alta-paquete', desc: 'Registrar nuevo paquete', color: '#567C8D' },
   { titulo: 'Alta Contrato', icono: '📝', ruta: '/alta-contrato', desc: 'Registrar nuevo contrato', color: '#2F4156' },
+  { titulo: 'Dashboard', icono: '📊', ruta: '/dashboard', desc: 'Resumen general del sistema', color: '#567C8D' },
+  { titulo: 'Módulo de pagos', icono: '💳', ruta: '/modulo-pagos', desc: 'Gestión integral de pagos', color: '#2F4156' },
+  { titulo: 'Captura de pago', icono: '🧾', ruta: '/captura-pago', desc: 'Registrar nuevo pago', color: '#567C8D' },
+  { titulo: 'Validación de cobros', icono: '✅', ruta: '/validacion-cobros', desc: 'Aprobar o rechazar pagos', color: '#2F4156' },
 ]
 </script>
 
