@@ -14,7 +14,7 @@ const routes = [
   // Dashboards
   { path: '/dashboard-admin', name: 'dashboard-admin', component: () => import('../views/AdminDashboard.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/dashboard-usuario', name: 'dashboard-usuario', component: () => import('../views/UsuarioDashboard.vue'), meta: { requiresAuth: true } },
-
+  { path: '/dashboard', name: 'dashboard', component: () => import('../views/DashboardView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   // Perfil
   { path: '/perfil', name: 'perfil', component: () => import('../views/PerfilView.vue'), meta: { requiresAuth: true } },
 
@@ -24,7 +24,7 @@ const routes = [
   { path: '/lista-servicios', name: 'lista-servicios', component: () => import('../views/ListaServiciosView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/lista-contratos', name: 'lista-contratos', component: () => import('../views/ListaContratosView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/lista-pagos', name: 'lista-pagos', component: () => import('../views/ListaPagosView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
-  { path: '/validacion-cobros', name: 'validacion-cobros', component: () => import('../views/ValidacionCobrosView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
+
   // Altas (admin)
   { path: '/alta-cliente', name: 'alta-cliente', component: () => import('../views/AltaClienteView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/alta-paquete', name: 'alta-paquete', component: () => import('../views/AltaPaqueteView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
