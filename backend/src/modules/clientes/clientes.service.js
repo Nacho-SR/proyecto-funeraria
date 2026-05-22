@@ -1,6 +1,8 @@
 import { ApiError } from '../../shared/utils/apiError.js'
 import { ClientesRepository } from './clientes.repo.js'
 import { FieldValue } from 'firebase-admin/firestore'
+import bcrypt from 'bcrypt'
+import { admin } from '../../config/firebase.js'
 
 export class ClientesService {
     constructor () {
@@ -41,15 +43,6 @@ export class ClientesService {
             pagos: listaPagos
         }
     }
-import bcrypt from 'bcrypt'
-import { admin } from '../../config/firebase.js'
-import { ApiError } from '../../shared/utils/apiError.js'
-import { ClientesRepository } from './clientes.repository.js'
-
-export class ClientesService {
-  constructor () {
-    this.repo = new ClientesRepository()
-  }
 
   async crearNuevoBeneficiario(data) {
     console.log('Creando nuevo beneficiario con data:', data)

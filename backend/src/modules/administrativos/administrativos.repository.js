@@ -101,6 +101,37 @@ export class AdministrativosRepository {
     return detalles;
   }
 
+  async obtenerInfoContratos(){
+    const contratosSnap = await db.collection('contratos').get()
+    if ( contratosSnap.empty ) {
+      return []
+    }
+    const clientesInfo = []
+
+    const promesasContratos = contratosSnap.docs.map(async (contratoDoc) => {
+      const contrato = contratoDoc.data();
+
+      const paqueteInfo = await this.findPaqueteById(contrato.paquetes_id);
+      const clienteInfo = await this.clienteInfoById(contrato.clientes_id);
+
+      delete contrato.clientes_id
+      delete contrato.paquetes_id
+      delete contrato.creado_por
+      delete contrato.fecha_creacion
+      delete contrato.fecha_actualizacion
+      delete contrato.actualizado_por
+
+      return {
+        ...contrato,
+        cliente: { ...clienteInfo },
+        paquete: { ...paqueteInfo }
+      };
+    });
+
+    const contratos = await Promise.all(promesasContratos)
+    return contratos
+  }
+
   async clienteInfoById(id) {
     const clienteDoc = await db.collection("clientes").doc(id).get()
     if (!clienteDoc.exists) return null

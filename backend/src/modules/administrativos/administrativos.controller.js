@@ -35,6 +35,11 @@ export const obtenerDetallesCobro = async (req, res) => {
   res.status(200).json({ detalles })
 }
 
+export const obtenerInfoContratos = async (req, res) => {
+  const contratos = await service.obtenerInfoContratos()
+  res.status(200).json({ contratos })
+}
+
 export const crearCliente = async (req, res) => {
   const doc = nuevoClienteSchema.parse(req.body)
   const created = await service.crearNuevoCliente(doc)

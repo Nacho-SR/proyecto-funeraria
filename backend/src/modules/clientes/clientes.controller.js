@@ -1,6 +1,7 @@
 import { nuevoPagoSchema } from '../pagos/pagos.schema.js';
 import { ClientesService } from './clientes.service.js';
 import { ApiError } from '../../shared/utils/apiError.js';
+import { AdministrativosService } from '../administrativos/administrativos.service.js';
 
 const service = new ClientesService()
 
@@ -20,9 +21,8 @@ export const obtenerPagosPorCliente = async (req, res) => {
 */
 import { createBeneficiariosSchema } from '../beneficiarios/beneficiarios.schema.js'
 import { updateBeneficiariosSchema } from '../beneficiarios/beneficiarios.schema.js'
-import { ApiError } from '../../shared/utils/apiError.js'
 
-const service = new AdministrativosService()
+const serviceA = new AdministrativosService()
 
 export async function altaBeneficiario (req, res) {
   const { error, value } = createBeneficiariosSchema.safeParse(req.body)

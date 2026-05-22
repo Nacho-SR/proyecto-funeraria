@@ -10,10 +10,7 @@ console.log("🛠️ Cargando rutas de clientes...")
 router.post('/nuevo-pago', asyncHandler(ctrl.nuevoPago))
 router.get('/:clienteID/pagos', asyncHandler(ctrl.obtenerPagosPorCliente))
 
-export default router
 import * as Ctrl from './clientes.controller.js'
-
-const router = Router()
 
 router.post('/alta-beneficiario', asyncHandler(Ctrl.altaBeneficiario))
 router.post('/actualizar-beneficiario', asyncHandler(Ctrl.actualizarBeneficiario))
