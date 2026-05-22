@@ -8,7 +8,7 @@ import { nuevoClienteSchema,
           createContratoSchema,
           nuevaRutaCobroSchema
         } from './asignaciones.schema.js'
-import { createCobradoresSchema } from '../cobradores/cobradores.schema.js'
+import { nuevoPagoSchema } from '../pagos/pagos.schema.js'
 import { AdministrativosService } from './administrativos.service.js'
 import { ApiError } from '../../shared/utils/apiError.js'
 
@@ -68,6 +68,18 @@ export const crearRutaCobro = async (req, res) => {
   const doc = nuevaRutaCobroSchema.parse(req.body)
   const created = await service.crearRutaCobro(doc)
   res.status(201).json(created)
+}
+
+export const nuevoPago = async (req, res) => {
+    const doc = nuevoPagoSchema.parse(req.body)
+    const created = await service.nuevoPago(doc)
+    res.status(201).json(created)
+}
+
+export const obtenerPagosPorCliente = async (req, res) => {
+    const { clienteID } = req.params
+    const historial = await service.obtenerHistorialCliente(clienteID)
+    res.status(200).json(historial)
 }
 
 export const listarRutasCobro = async (req, res) => {

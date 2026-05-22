@@ -23,20 +23,4 @@ export class ClientesRepository {
     return { id: pago.id, ...pago.docs[0].data() }
   }
 
-  async newPago(data) {
-    const pago = await db.collection("pagos").doc()
-    await pago.set(data)
-    return { id: pago.id, ...data }
-  }
-
-  async getPagosByCliente(clienteID) {
-    console.log('Buscando historial de pagos:', clienteID)
-    const pagos = await db.collection("pagos").where('clienteID', '==', clienteID).orderBy('fechaPago', 'desc').get()
-    if (pagos.empty) return []
-    return pagos.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }))
-  }
-
 }

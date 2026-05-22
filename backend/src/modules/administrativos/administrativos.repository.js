@@ -1,9 +1,8 @@
 /*
   * Módulo de administrativos - Repositorio
 */
-import { ca } from 'zod/locales'
 import { admin, db } from '../../config/firebase.js'
-import { email } from 'zod'
+import { ApiError } from '../../shared/utils/apiError.js'
 
 export class AdministrativosRepository {
 
@@ -122,6 +121,7 @@ export class AdministrativosRepository {
       delete contrato.actualizado_por
 
       return {
+        contratos_id: contratoDoc.id,
         ...contrato,
         cliente: { ...clienteInfo },
         paquete: { ...paqueteInfo }
@@ -334,22 +334,20 @@ export class AdministrativosRepository {
   
   async darBajaCliente(clienteId) {
     try {
-    const clienteRef = db.collection("clientes").doc(clienteId);
-    await clienteRef.update({
-      activo: false,
-      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
-    });
+      const clienteRef = db.collection("clientes").doc(clienteId);
+      await clienteRef.update({
+        activo: false,
+        fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+      });
 
-    const clienteDoc = await clienteRef.get();
-    const usuarioId = clienteDoc.data().usuarios_id;
-    const usuarioRef = db.collection("usuarios").doc(usuarioId);
-    await usuarioRef.update({
-      activo: false,
-      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
-    });
-    
-    console.log('Cliente dado de baja exitosamente con su usuario asociado');
-  } catch (error) {
+      const clienteDoc = await clienteRef.get();
+      const usuarioId = clienteDoc.data().usuarios_id;
+      const usuarioRef = db.collection("usuarios").doc(usuarioId);
+      await usuarioRef.update({
+        activo: false,
+        fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (error) {
     console.error('Error al dar de baja cliente:', error);
     throw error; // o retorna un error controlado según tu lógica
   }
@@ -409,6 +407,66 @@ export class AdministrativosRepository {
     const rutaCobro = await db.collection("ruta_cobros").doc()
     await rutaCobro.set(data)
     return { ruta_cobros_id: rutaCobro.id, ...data }
+  }
+
+  async newPago(data) {
+    const pagoRef = db.collection("pagos").doc()
+    const contratoRef = db.collection("contratos").doc(data.contratos_id)
+
+    return await db.runTransaction(async transaction => {
+      const contratoDoc = await transaction.get(contratoRef)
+      if (!contratoDoc.exists) {
+        throw new ApiError(404, 'Contrato no encontrado')
+      }
+
+      const contrato = contratoDoc.data()
+      const abonadoActual = Number(contrato.abonado ?? 0)
+      const monto = Number(data.monto)
+
+      if (!Number.isFinite(abonadoActual)) {
+        throw new ApiError(409, 'El monto abonado actual del contrato no es valido')
+      }
+      if (!Number.isFinite(monto) || monto <= 0) {
+        throw new ApiError(400, 'El monto del pago debe ser mayor a cero')
+      }
+
+      const nuevoAbonado = abonadoActual + monto
+      const precioFinal = Number(contrato.precio_final ?? 0)
+
+      if (Number.isFinite(precioFinal) && precioFinal > 0 && nuevoAbonado > precioFinal) {
+        throw new ApiError(400, 'El monto del pago excede el saldo pendiente del contrato')
+      }
+
+      const pago = {
+        ...data,
+        monto
+      }
+
+      transaction.set(pagoRef, pago)
+      transaction.update(contratoRef, {
+        abonado: nuevoAbonado,
+        fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+      })
+
+      return {
+        pagos_id: pagoRef.id,
+        ...pago,
+        contrato: {
+          contratos_id: contratoDoc.id,
+          abonado: nuevoAbonado
+        }
+      }
+    })
+  }
+
+  async getPagosByCliente(clienteID) {
+    console.log('Buscando historial de pagos:', clienteID)
+    const pagos = await db.collection("pagos").where('clienteID', '==', clienteID).orderBy('fechaPago', 'desc').get()
+    if (pagos.empty) return []
+    return pagos.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
   }
 
   async buscarUltimoNumeroContrato() {

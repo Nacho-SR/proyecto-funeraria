@@ -360,6 +360,38 @@ export class AdministrativosService {
     return createdRutaCobro
   }
 
+  async nuevoPago(data) {
+    const pago = {
+      contratos_id: data.contratos_id,
+      monto: data.monto,
+      estatus: 'validado',
+      fechaPago: admin.firestore.FieldValue.serverTimestamp(),
+      fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+    }
+
+    const nuevoPago = await this.repo.newPago(pago)
+    return { nuevoPago }
+  }
+
+  async obtenerHistorialCliente(clienteID) {
+    console.log('Procesando historial del cliente:', clienteID)
+
+    const listaPagos = await this.repo.getPagosByCliente(clienteID)
+
+    const totalPagado = listaPagos.reduce((acumulado, pago) => acumulado + (pago.monto || 0), 0)
+
+    return {
+        clienteID,
+        resumen: {
+            cantidadPagos: listaPagos.length,
+            montoTotalHistorico: totalPagado,
+            ultimoPago: listaPagos[0] ? listaPagos[0].fechaPago : null
+        },
+        pagos: listaPagos
+    }
+  }
+
   async darBajaCliente(clienteId) {
     const cliente = await this.repo.findClienteById(clienteId)
     if (!cliente) {
