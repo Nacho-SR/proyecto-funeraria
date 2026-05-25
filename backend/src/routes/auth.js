@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { authenticate } from '../shared/middleware/auth.middleware.js'
-import { getUserByEmail, getUserById, verifyPassword, signToken, publicUser } from '../modules/auth.js'
+import { getUserByEmail, verifyPassword, signToken, publicUser } from '../modules/auth.js'
 
 const router = Router()
 
@@ -50,16 +50,7 @@ router.post('/login', async (req, res, next) => {
 
 router.get('/me', authenticate, async (req, res, next) => {
   try {
-    const user = await getUserById(req.user.sub)
-
-    if (!user || !user.rol) {
-      return res.status(401).json({ message: 'Sesion invalida' })
-    }
-    if (!user.activo) {
-      return res.status(403).json({ message: 'Usuario inactivo' })
-    }
-
-    return res.status(200).json({ usuario: publicUser(user) })
+    return res.status(200).json({ usuario: req.user })
   } catch (error) {
     return next(error)
   }

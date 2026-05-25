@@ -4,12 +4,14 @@
 import { Router } from 'express'
 import { asyncHandler } from '../../shared/utils/asyncHandler.js'
 import { authenticate } from '../../shared/middleware/auth.middleware.js'
+import { requireRole } from '../../shared/middleware/requireRole.middleware.js'
 import * as Ctrl from './administrativos.controller.js'
 
 const router = Router()
 
-// Todas las req usan JWT
-//router.use(authenticate)
+router.use(authenticate)
+router.use(requireRole('admin'))
+
 router.get('/clientes-activos', asyncHandler(Ctrl.listarClientesActivos))
 router.get('/cobradores-activos', asyncHandler(Ctrl.listarCobradoresActivos))
 router.get('/productos-activos', asyncHandler(Ctrl.listarProductosActivos))
