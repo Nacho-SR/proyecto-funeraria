@@ -10,21 +10,32 @@ const form = reactive({
   correo: '',
   password: '',
   confirmar: '',
+  rol: 'cliente',
 })
 
 const error = ref('')
+const exito = ref('')
 const cargando = ref(false)
+
+function limpiar() {
+  form.nombre = ''
+  form.correo = ''
+  form.password = ''
+  form.confirmar = ''
+  form.rol = 'cliente'
+}
 
 async function registrar() {
   error.value = ''
+  exito.value = ''
 
   if (form.password !== form.confirmar) {
-    error.value = 'Las contraseñas no coinciden.'
+    error.value = 'Las contrasenas no coinciden.'
     return
   }
 
   if (form.password.length < 6) {
-    error.value = 'La contraseña debe tener al menos 6 caracteres.'
+    error.value = 'La contrasena debe tener al menos 6 caracteres.'
     return
   }
 
@@ -34,12 +45,13 @@ async function registrar() {
       email: form.correo,
       password: form.password,
       nombre: form.nombre,
-      rol: 'cliente',
+      rol: form.rol,
     })
 
-    router.push({ name: 'login' })
+    exito.value = 'Usuario creado correctamente.'
+    limpiar()
   } catch (err) {
-    error.value = err.response?.data?.message || 'Error al crear la cuenta.'
+    error.value = err.response?.data?.message || 'Error al crear el usuario.'
   } finally {
     cargando.value = false
   }
@@ -47,71 +59,79 @@ async function registrar() {
 </script>
 
 <template>
-  <div class="login-page">
-    <div class="login-card shadow-lg">
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="card shadow-sm">
+          <div class="card-header bg-white">
+            <h4 class="mb-0 fw-bold" style="color: var(--primary)">Crear usuario</h4>
+          </div>
+          <div class="card-body">
+            <div v-if="error" class="alert alert-danger">{{ error }}</div>
+            <div v-if="exito" class="alert alert-success">{{ exito }}</div>
 
-      <h2 class="text-center mb-4 title-login">Crear Cuenta</h2>
+            <form @submit.prevent="registrar">
+              <div class="mb-3">
+                <label class="form-label">Nombre completo</label>
+                <input
+                  v-model="form.nombre"
+                  type="text"
+                  class="form-control"
+                  required
+                />
+              </div>
 
-      <div v-if="error" class="alert alert-danger">{{ error }}</div>
+              <div class="mb-3">
+                <label class="form-label">Correo electronico</label>
+                <input
+                  v-model="form.correo"
+                  type="email"
+                  class="form-control"
+                  required
+                />
+              </div>
 
-      <form @submit.prevent="registrar">
+              <div class="mb-3">
+                <label class="form-label">Rol</label>
+                <select v-model="form.rol" class="form-select" required>
+                  <option value="cliente">Cliente</option>
+                  <option value="cobrador">Cobrador</option>
+                </select>
+              </div>
 
-        <div class="mb-3">
-          <label class="form-label">Nombre completo</label>
-          <input
-            v-model="form.nombre"
-            type="text"
-            class="form-control"
-            placeholder="Ingrese su nombre"
-            required
-          />
+              <div class="mb-3">
+                <label class="form-label">Contrasena</label>
+                <input
+                  v-model="form.password"
+                  type="password"
+                  class="form-control"
+                  required
+                />
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label">Confirmar contrasena</label>
+                <input
+                  v-model="form.confirmar"
+                  type="password"
+                  class="form-control"
+                  required
+                />
+              </div>
+
+              <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-outline-secondary" @click="router.push({ name: 'dashboard-admin' })">
+                  Cancelar
+                </button>
+                <button class="btn btn-custom" :disabled="cargando">
+                  <span v-if="cargando" class="spinner-border spinner-border-sm me-2"></span>
+                  {{ cargando ? 'Creando...' : 'Crear usuario' }}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-
-        <div class="mb-3">
-          <label class="form-label">Correo electrónico</label>
-          <input
-            v-model="form.correo"
-            type="email"
-            class="form-control"
-            placeholder="ejemplo@correo.com"
-            required
-          />
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">Contraseña</label>
-          <input
-            v-model="form.password"
-            type="password"
-            class="form-control"
-            placeholder="••••••••"
-            required
-          />
-        </div>
-
-        <div class="mb-4">
-          <label class="form-label">Confirmar contraseña</label>
-          <input
-            v-model="form.confirmar"
-            type="password"
-            class="form-control"
-            placeholder="••••••••"
-            required
-          />
-        </div>
-
-        <button class="btn btn-custom w-100 mb-3" :disabled="cargando">
-          <span v-if="cargando" class="spinner-border spinner-border-sm me-2"></span>
-          {{ cargando ? 'Creando cuenta…' : 'Registrarse' }}
-        </button>
-
-        <div class="text-center">
-          <router-link to="/login" class="text-decoration-none">
-            ¿Ya tienes cuenta? Inicia sesión
-          </router-link>
-        </div>
-
-      </form>
+      </div>
     </div>
   </div>
 </template>

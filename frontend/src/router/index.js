@@ -13,8 +13,8 @@ const routes = [
 
   // Dashboards
   { path: '/dashboard-admin', name: 'dashboard-admin', component: () => import('../views/AdminDashboard.vue'), meta: { requiresAuth: true, rol: 'admin' } },
-  { path: '/dashboard-cobrador', name: 'dashboard-cobrador', component: () => import('../views/UsuarioDashboard.vue'), meta: { requiresAuth: true, rol: 'cobrador' } },
-  { path: '/dashboard-cliente', name: 'dashboard-cliente', component: () => import('../views/UsuarioDashboard.vue'), meta: { requiresAuth: true, rol: 'cliente' } },
+  { path: '/dashboard-cobrador', name: 'dashboard-cobrador', component: () => import('../views/CobradorDashboard.vue'), meta: { requiresAuth: true, rol: 'cobrador' } },
+  { path: '/dashboard-cliente', name: 'dashboard-cliente', component: () => import('../views/ClienteDashboard.vue'), meta: { requiresAuth: true, rol: 'cliente' } },
   { path: '/dashboard-usuario', name: 'dashboard-usuario', redirect: (to) => ({ name: dashboardPorRol(rolGuardado()), query: to.query }) },
   { path: '/dashboard', name: 'dashboard', component: () => import('../views/DashboardView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   // Perfil
