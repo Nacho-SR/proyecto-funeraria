@@ -56,14 +56,18 @@ function formatoDireccion(direccion) {
 
 onMounted(async () => {
   try {
-    const { data } = await api.get('/administrativos/info-contratos')
-    contratos.value = data?.contratos ?? data ?? []
+    await cargarContratos()
   } catch {
     mensajeError.value = 'Error al cargar la lista de contratos'
   } finally {
     cargando.value = false
   }
 })
+
+async function cargarContratos() {
+  const { data } = await api.get('/administrativos/info-contratos')
+  contratos.value = data?.contratos ?? data ?? []
+}
 
 async function validar() {
   errores.value = {}
@@ -106,6 +110,12 @@ async function guardar() {
     mensajeExito.value = 'Pago registrado correctamente'
     emit('guardado', data)
     limpiar()
+
+    try {
+      await cargarContratos()
+    } catch {
+      mensajeError.value = 'Pago registrado, pero no se pudo actualizar la lista de contratos'
+    }
   } catch (err) {
     mensajeError.value = err.response?.data?.message || 'Error al guardar el pago'
   } finally {
