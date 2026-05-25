@@ -112,6 +112,13 @@ export class AdministrativosRepository {
 
       const paqueteInfo = await this.findPaqueteById(contrato.paquetes_id);
       const clienteInfo = await this.clienteInfoById(contrato.clientes_id);
+      const direccionCobroSnap = await db.collection("direcciones_cobro")
+        .where('contrato_id', '==', contratoDoc.id)
+        .limit(1)
+        .get()
+      const direccionCobroInfo = direccionCobroSnap.empty
+        ? null
+        : { direcciones_cobro_id: direccionCobroSnap.docs[0].id, ...direccionCobroSnap.docs[0].data() }
 
       delete contrato.clientes_id
       delete contrato.paquetes_id
@@ -124,7 +131,8 @@ export class AdministrativosRepository {
         contratos_id: contratoDoc.id,
         ...contrato,
         cliente: { ...clienteInfo },
-        paquete: { ...paqueteInfo }
+        paquete: { ...paqueteInfo },
+        direccion_cobro: direccionCobroInfo
       };
     });
 
