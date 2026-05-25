@@ -95,9 +95,6 @@ onUnmounted(() => document.removeEventListener('click', clickFuera))
             <li class="nav-item">
               <router-link class="nav-link text-white" to="/login" @click="cerrarTodo">Iniciar Sesión</router-link>
             </li>
-            <li class="nav-item">
-              <router-link class="nav-link text-white" to="/register" @click="cerrarTodo">Registrarse</router-link>
-            </li>
           </template>
 
           <!-- Con sesión: menú perfil -->
