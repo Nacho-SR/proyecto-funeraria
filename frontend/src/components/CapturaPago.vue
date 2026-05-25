@@ -1,8 +1,8 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { pagoSchema, pagoModel, ESTATUS_PAGO } from '@/schemas'
+import { pagoSchema, pagoModel } from '@/schemas'
 import { pagoService } from '@/services/pago.service'
-import { contratoService } from '@/services/contrato.service'
+import api from '@/services/api'
 
 const emit = defineEmits(['guardado', 'cancelado'])
 
@@ -16,7 +16,7 @@ const mensajeError = ref('')
 
 onMounted(async () => {
   try {
-    const { data } = await contratoService.listar()
+    const { data } = await api.get('/administrativos/info-contratos')
     contratos.value = data?.contratos ?? data ?? []
   } catch {
     mensajeError.value = 'Error al cargar la lista de contratos'
@@ -50,10 +50,8 @@ async function guardar() {
   enviando.value = true
   try {
     const { data } = await pagoService.crear({
-      contratoID: form.contratoID,
-      fechaPago: form.fechaPago,
+      contratos_id: form.contratoID,
       monto: form.monto,
-      estatus: form.estatus,
     })
     mensajeExito.value = 'Pago registrado correctamente'
     emit('guardado', data)
@@ -100,27 +98,15 @@ function cancelar() {
           :class="{ 'is-invalid': errores.contratoID }"
         >
           <option :value="null" disabled>Selecciona un contrato</option>
-          <option v-for="c in contratos" :key="c.contratoID ?? c.id" :value="c.contratoID ?? c.id">
-            {{ c.numContrato ?? `Contrato ${c.contratoID ?? c.id}` }}
+          <option v-for="c in contratos" :key="c.contratos_id ?? c.contratoID ?? c.id" :value="c.contratos_id ?? c.contratoID ?? c.id">
+            {{ c.num_contrato ?? c.numContrato ?? `Contrato ${c.contratos_id ?? c.contratoID ?? c.id}` }}
           </option>
         </select>
         <div class="invalid-feedback">{{ errores.contratoID }}</div>
       </div>
-      <div class="col-md-6">
-        <label for="estatus" class="form-label">Estatus <span class="text-danger">*</span></label>
-        <select
-          id="estatus"
-          v-model="form.estatus"
-          class="form-select"
-          :class="{ 'is-invalid': errores.estatus }"
-        >
-          <option v-for="e in ESTATUS_PAGO" :key="e" :value="e">{{ e }}</option>
-        </select>
-        <div class="invalid-feedback">{{ errores.estatus }}</div>
-      </div>
     </div>
 
-    <h5 class="mb-3">Monto y fecha</h5>
+    <h5 class="mb-3">Monto</h5>
     <div class="row g-3 mb-4">
       <div class="col-md-6">
         <label for="monto" class="form-label">Monto <span class="text-danger">*</span></label>
@@ -135,17 +121,6 @@ function cancelar() {
           placeholder="0.00"
         />
         <div class="invalid-feedback">{{ errores.monto }}</div>
-      </div>
-      <div class="col-md-6">
-        <label for="fechaPago" class="form-label">Fecha de pago <span class="text-danger">*</span></label>
-        <input
-          id="fechaPago"
-          v-model="form.fechaPago"
-          type="date"
-          class="form-control"
-          :class="{ 'is-invalid': errores.fechaPago }"
-        />
-        <div class="invalid-feedback">{{ errores.fechaPago }}</div>
       </div>
     </div>
 

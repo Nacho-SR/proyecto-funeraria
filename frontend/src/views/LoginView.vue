@@ -10,11 +10,16 @@ const { login } = useAuth()
 const form = reactive({
   correo: '',
   password: '',
-  rol: 'admin',
 })
 
 const error = ref('')
 const cargando = ref(false)
+
+function dashboardPorRol(rol) {
+  if (rol === 'admin') return 'dashboard-admin'
+  if (rol === 'cobrador') return 'dashboard-cobrador'
+  return 'dashboard-cliente'
+}
 
 async function iniciarSesion() {
   error.value = ''
@@ -23,21 +28,12 @@ async function iniciarSesion() {
     const { data } = await api.post('/auth/login', {
       email: form.correo,
       password: form.password,
-      role: form.rol,
     })
 
-    login(
-      { nombre: data.email, correo: data.email, rol: data.role },
-      data.token
-    )
-
-    if (data.role === 'admin') {
-      router.push({ name: 'dashboard-admin' })
-    } else {
-      router.push({ name: 'dashboard-usuario' })
-    }
+    login(data.usuario, data.token)
+    router.push({ name: dashboardPorRol(data.usuario.rol) })
   } catch (err) {
-    error.value = err.response?.data?.message || 'Correo, contraseña o rol incorrectos.'
+    error.value = err.response?.data?.message || 'Correo o contrasena incorrectos.'
   } finally {
     cargando.value = false
   }
@@ -47,14 +43,14 @@ async function iniciarSesion() {
 <template>
   <div class="login-page">
     <div class="login-card shadow-lg">
-      <h2 class="text-center mb-4 title-login">Iniciar Sesión</h2>
+      <h2 class="text-center mb-4 title-login">Iniciar Sesion</h2>
 
       <div v-if="error" class="alert alert-danger">{{ error }}</div>
 
       <form @submit.prevent="iniciarSesion">
 
         <div class="mb-3">
-          <label class="form-label">Correo electrónico</label>
+          <label class="form-label">Correo electronico</label>
           <input
             v-model="form.correo"
             type="email"
@@ -64,29 +60,20 @@ async function iniciarSesion() {
           />
         </div>
 
-        <div class="mb-3">
-          <label class="form-label">Contraseña</label>
+        <div class="mb-4">
+          <label class="form-label">Contrasena</label>
           <input
             v-model="form.password"
             type="password"
             class="form-control"
-            placeholder="••••••••"
+            placeholder="********"
             required
           />
         </div>
 
-        <div class="mb-4">
-          <label class="form-label">Rol</label>
-          <select v-model="form.rol" class="form-control">
-            <option value="admin">Administrador</option>
-            <option value="cobrador">Cobrador</option>
-            <option value="cliente">Cliente</option>
-          </select>
-        </div>
-
         <button class="btn btn-custom w-100" :disabled="cargando">
           <span v-if="cargando" class="spinner-border spinner-border-sm me-2"></span>
-          {{ cargando ? 'Entrando…' : 'Entrar' }}
+          {{ cargando ? 'Entrando...' : 'Entrar' }}
         </button>
 
       </form>

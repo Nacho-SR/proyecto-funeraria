@@ -13,7 +13,9 @@ const routes = [
 
   // Dashboards
   { path: '/dashboard-admin', name: 'dashboard-admin', component: () => import('../views/AdminDashboard.vue'), meta: { requiresAuth: true, rol: 'admin' } },
-  { path: '/dashboard-usuario', name: 'dashboard-usuario', component: () => import('../views/UsuarioDashboard.vue'), meta: { requiresAuth: true } },
+  { path: '/dashboard-cobrador', name: 'dashboard-cobrador', component: () => import('../views/UsuarioDashboard.vue'), meta: { requiresAuth: true, rol: 'cobrador' } },
+  { path: '/dashboard-cliente', name: 'dashboard-cliente', component: () => import('../views/UsuarioDashboard.vue'), meta: { requiresAuth: true, rol: 'cliente' } },
+  { path: '/dashboard-usuario', name: 'dashboard-usuario', redirect: (to) => ({ name: dashboardPorRol(usuarioActual()?.rol), query: to.query }) },
   { path: '/dashboard', name: 'dashboard', component: () => import('../views/DashboardView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   // Perfil
   { path: '/perfil', name: 'perfil', component: () => import('../views/PerfilView.vue'), meta: { requiresAuth: true } },
@@ -51,14 +53,25 @@ const router = createRouter({
   routes,
 })
 
+function usuarioActual() {
+  return JSON.parse(localStorage.getItem('usuario') || 'null')
+}
+
+function dashboardPorRol(rol) {
+  if (rol === 'admin') return 'dashboard-admin'
+  if (rol === 'cobrador') return 'dashboard-cobrador'
+  if (rol === 'cliente') return 'dashboard-cliente'
+  return 'login'
+}
+
 router.beforeEach((to) => {
   const token = localStorage.getItem('token')
-  const usuario = JSON.parse(localStorage.getItem('usuario') || 'null')
+  const usuario = usuarioActual()
 
   if (to.meta.requiresAuth && !token) return { name: 'login' }
 
-  if (to.meta.rol === 'admin' && usuario?.rol !== 'admin') {
-    return token ? { name: 'dashboard-usuario' } : { name: 'login' }
+  if (to.meta.rol && usuario?.rol !== to.meta.rol) {
+    return token ? { name: dashboardPorRol(usuario?.rol) } : { name: 'login' }
   }
 
   if (

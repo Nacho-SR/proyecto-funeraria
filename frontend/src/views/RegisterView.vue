@@ -34,7 +34,7 @@ async function registrar() {
       email: form.correo,
       password: form.password,
       nombre: form.nombre,
-      role: 'cliente',
+      rol: 'cliente',
     })
 
     router.push({ name: 'login' })

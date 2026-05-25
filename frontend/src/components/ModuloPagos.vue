@@ -56,7 +56,7 @@ const filtrados = computed(() => {
 })
 
 const totales = computed(() => {
-  const t = { pagado: 0, pendiente: 0, vencido: 0, cancelado: 0 }
+  const t = { validado: 0, 'por validar': 0, pendiente: 0, cancelado: 0 }
   filtrados.value.forEach(p => {
     const estatus = p.estatus ?? p.estado
     const monto = Number(p.monto ?? 0)
@@ -71,9 +71,9 @@ const totalGeneral = computed(() =>
 
 function estatusClass(e) {
   return {
-    'pagado': 'bg-success',
+    'validado': 'bg-success',
+    'por validar': 'bg-info text-dark',
     'pendiente': 'bg-warning text-dark',
-    'vencido': 'bg-danger',
     'cancelado': 'bg-secondary',
   }[e] ?? 'bg-secondary'
 }
@@ -122,19 +122,19 @@ onMounted(cargar)
       <div class="col-md-3">
         <div class="card-resumen card-pagado">
           <div class="resumen-label">Cobrado</div>
-          <div class="resumen-monto">${{ totales.pagado.toLocaleString('es-MX') }}</div>
+          <div class="resumen-monto">${{ totales.validado.toLocaleString('es-MX') }}</div>
         </div>
       </div>
       <div class="col-md-3">
         <div class="card-resumen card-pendiente">
-          <div class="resumen-label">Pendiente</div>
-          <div class="resumen-monto">${{ totales.pendiente.toLocaleString('es-MX') }}</div>
+          <div class="resumen-label">Por validar</div>
+          <div class="resumen-monto">${{ totales['por validar'].toLocaleString('es-MX') }}</div>
         </div>
       </div>
       <div class="col-md-3">
         <div class="card-resumen card-vencido">
-          <div class="resumen-label">Vencido</div>
-          <div class="resumen-monto">${{ totales.vencido.toLocaleString('es-MX') }}</div>
+          <div class="resumen-label">Pendiente</div>
+          <div class="resumen-monto">${{ totales.pendiente.toLocaleString('es-MX') }}</div>
         </div>
       </div>
       <div class="col-md-3">
@@ -149,9 +149,9 @@ onMounted(cargar)
       <input v-model="busqueda" type="text" class="form-control filtro-input" placeholder="🔍 Buscar por contrato o cliente..." />
       <select v-model="filtroEstatus" class="form-select filtro-select">
         <option value="todos">Todos los estatus</option>
-        <option value="pagado">Pagados</option>
+        <option value="validado">Validados</option>
+        <option value="por validar">Por validar</option>
         <option value="pendiente">Pendientes</option>
-        <option value="vencido">Vencidos</option>
         <option value="cancelado">Cancelados</option>
       </select>
     </div>

@@ -9,7 +9,7 @@ const CreateUserSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   nombre: z.string().min(2),
-  role: z.enum(['cobrador', 'cliente']),
+  rol: z.enum(['cobrador', 'cliente']),
 })
 
 const PerfilSchema = z.object({
@@ -31,31 +31,36 @@ router.post('/create', async (req, res, next) => {
       })
     }
 
-    const { email, password, nombre, role } = parsed.data
+    const { email, password, nombre, rol } = parsed.data
     const normalizedEmail = normalizeEmail(email)
 
-    const userRef = db.collection(USERS_COLLECTION).doc(normalizedEmail)
-    const userSnapshot = await userRef.get()
+    const userSnapshot = await db.collection(USERS_COLLECTION)
+      .where('email', '==', normalizedEmail)
+      .limit(1)
+      .get()
 
-    if (userSnapshot.exists) {
+    if (!userSnapshot.empty) {
       return res.status(409).json({ message: 'El usuario ya existe' })
     }
 
+    const userRef = db.collection(USERS_COLLECTION).doc()
     const passwordHash = await hashPassword(password)
 
     await userRef.set({
       email: normalizedEmail,
       nombre,
-      role,
+      rol,
+      activo: true,
       passwordHash,
       perfilCompleto: false,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp(),
     })
 
     return res.status(201).json({
       message: 'Usuario creado correctamente',
       email: normalizedEmail,
-      role,
+      rol,
     })
   } catch (error) {
     return next(error)
@@ -96,7 +101,7 @@ router.post('/perfil', async (req, res, next) => {
     await userRef.update({
       ...parsed.data,
       perfilCompleto: true,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp(),
     })
 
     return res.status(200).json({ message: 'Perfil actualizado correctamente' })

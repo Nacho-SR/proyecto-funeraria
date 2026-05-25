@@ -56,33 +56,33 @@ const contratosActivos = computed(() => contratos.value.filter(c => c.estado ===
 
 const totalCobrado = computed(() =>
   pagos.value
-    .filter(p => (p.estatus ?? p.estado) === 'pagado')
+    .filter(p => (p.estatus ?? p.estado) === 'validado')
     .reduce((acc, p) => acc + Number(p.monto ?? 0), 0)
 )
 
 const totalPendiente = computed(() =>
   pagos.value
-    .filter(p => (p.estatus ?? p.estado) === 'pendiente')
+    .filter(p => ['por validar', 'pendiente'].includes(p.estatus ?? p.estado))
     .reduce((acc, p) => acc + Number(p.monto ?? 0), 0)
 )
 
-const totalVencido = computed(() =>
+const totalPorValidar = computed(() =>
   pagos.value
-    .filter(p => (p.estatus ?? p.estado) === 'vencido')
+    .filter(p => (p.estatus ?? p.estado) === 'por validar')
     .reduce((acc, p) => acc + Number(p.monto ?? 0), 0)
 )
 
 const chartPagosPorEstatus = computed(() => {
-  const counts = { pagado: 0, pendiente: 0, vencido: 0, cancelado: 0 }
+  const counts = { validado: 0, 'por validar': 0, pendiente: 0, cancelado: 0 }
   pagos.value.forEach(p => {
     const e = p.estatus ?? p.estado
     if (counts[e] !== undefined) counts[e]++
   })
   return {
-    labels: ['Pagado', 'Pendiente', 'Vencido', 'Cancelado'],
+    labels: ['Validado', 'Por validar', 'Pendiente', 'Cancelado'],
     datasets: [{
-      data: [counts.pagado, counts.pendiente, counts.vencido, counts.cancelado],
-      backgroundColor: ['#28a745', '#ffc107', '#dc3545', '#6c757d'],
+      data: [counts.validado, counts['por validar'], counts.pendiente, counts.cancelado],
+      backgroundColor: ['#28a745', '#17a2b8', '#ffc107', '#6c757d'],
       borderWidth: 0,
     }]
   }
@@ -107,7 +107,7 @@ const chartContratosPorEstado = computed(() => {
 const chartIngresosMensuales = computed(() => {
   const meses = {}
   pagos.value
-    .filter(p => (p.estatus ?? p.estado) === 'pagado')
+    .filter(p => (p.estatus ?? p.estado) === 'validado')
     .forEach(p => {
       const fecha = new Date(p.fechaPago ?? p.fecha_pago)
       if (isNaN(fecha)) return
@@ -149,9 +149,9 @@ const ultimosPagos = computed(() => {
 
 function estatusClass(e) {
   return {
-    'pagado': 'bg-success',
+    'validado': 'bg-success',
+    'por validar': 'bg-info text-dark',
     'pendiente': 'bg-warning text-dark',
-    'vencido': 'bg-danger',
     'cancelado': 'bg-secondary',
   }[e] ?? 'bg-secondary'
 }
@@ -226,8 +226,8 @@ onMounted(cargarTodo)
         <div class="col-md-6">
           <div class="resumen-card resumen-vencido">
             <div>
-              <div class="resumen-label">Vencido</div>
-              <div class="resumen-value">${{ totalVencido.toLocaleString('es-MX') }}</div>
+              <div class="resumen-label">Por validar</div>
+              <div class="resumen-value">${{ totalPorValidar.toLocaleString('es-MX') }}</div>
             </div>
             <div class="resumen-icon">⚠️</div>
           </div>

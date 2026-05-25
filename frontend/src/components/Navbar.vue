@@ -30,6 +30,12 @@ function cerrarSesion() {
   cerrarTodo()
 }
 
+function dashboardPorRol(rol) {
+  if (rol === 'admin') return '/dashboard-admin'
+  if (rol === 'cobrador') return '/dashboard-cobrador'
+  return '/dashboard-cliente'
+}
+
 function clickFuera(e) {
   if (!e.target.closest('.navbar-perfil') && !e.target.closest('.navbar-collapse')) {
     cerrarTodo()
@@ -75,10 +81,10 @@ onUnmounted(() => document.removeEventListener('click', clickFuera))
             </li>
           </template>
 
-          <!-- Cliente / Cobrador: solo ven sus servicios -->
+          <!-- Cliente / Cobrador -->
           <template v-else-if="isAutenticado && !esAdmin">
             <li class="nav-item">
-              <router-link class="nav-link text-white" to="/dashboard-usuario" @click="cerrarTodo">Servicios</router-link>
+              <router-link class="nav-link text-white" :to="dashboardPorRol(usuario?.rol)" @click="cerrarTodo">Mi panel</router-link>
             </li>
           </template>
         </ul>
@@ -106,7 +112,7 @@ onUnmounted(() => document.removeEventListener('click', clickFuera))
                 <div class="perfil-dropdown__avatar">{{ (usuario?.nombre?.[0] || 'U').toUpperCase() }}</div>
                 <div>
                   <p class="fw-bold mb-0 text-dark">{{ usuario?.nombre }}</p>
-                  <small class="text-muted">{{ usuario?.correo }}</small><br/>
+                  <small class="text-muted">{{ usuario?.email }}</small><br/>
                   <span class="badge-rol-small">{{ usuario?.rol }}</span>
                 </div>
               </div>

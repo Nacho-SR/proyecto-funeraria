@@ -3,20 +3,25 @@ import { hashPassword, normalizeEmail, USERS_COLLECTION } from './auth.js'
 
 export async function ensureAdminUser({ email, password }) {
   const normalizedEmail = normalizeEmail(email)
-  const userRef = db.collection(USERS_COLLECTION).doc(normalizedEmail)
-  const userSnapshot = await userRef.get()
+  const userSnapshot = await db.collection(USERS_COLLECTION)
+    .where('email', '==', normalizedEmail)
+    .limit(1)
+    .get()
 
-  if (userSnapshot.exists) {
+  if (!userSnapshot.empty) {
     return { created: false, reason: 'already_exists' }
   }
 
+  const userRef = db.collection(USERS_COLLECTION).doc()
   const passwordHash = await hashPassword(password)
 
   await userRef.set({
     email: normalizedEmail,
-    role: 'admin',
+    rol: 'admin',
+    activo: true,
     passwordHash,
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
+    fecha_modificacion: admin.firestore.FieldValue.serverTimestamp(),
   })
 
   return { created: true, email: normalizedEmail }

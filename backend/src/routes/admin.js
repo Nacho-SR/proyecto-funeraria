@@ -37,7 +37,7 @@ router.post('/create', async (req, res, next) => {
     return res.status(201).json({
       message: 'Usuario admin creado',
       email: result.email,
-      role: 'admin',
+      rol: 'admin',
     })
   } catch (error) {
     return next(error)

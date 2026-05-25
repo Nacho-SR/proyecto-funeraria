@@ -9,7 +9,9 @@ export function useAuth() {
 
   const rol = computed(() => usuario.value?.rol || null)
   const esAdmin = computed(() => rol.value === 'admin')
-  const esUsuario = computed(() => rol.value === 'usuario' || rol.value === 'cobrador')
+  const esCobrador = computed(() => rol.value === 'cobrador')
+  const esCliente = computed(() => rol.value === 'cliente')
+  const esUsuario = computed(() => esCobrador.value || esCliente.value)
 
   function login(datosUsuario, tokenJWT) {
     usuario.value = datosUsuario
@@ -31,6 +33,8 @@ export function useAuth() {
     isAutenticado,
     rol,
     esAdmin,
+    esCobrador,
+    esCliente,
     esUsuario,
     login,
     logout,

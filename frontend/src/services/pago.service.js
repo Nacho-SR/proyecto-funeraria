@@ -10,7 +10,7 @@ export const pagoService = {
     return api.get(`${RESOURCE}/pagos/${id}`)
   },
   crear(payload) {
-    return api.post(`${RESOURCE}/captura-pago`, payload)
+    return api.post(`${RESOURCE}/nuevo-pago`, payload)
   },
   validar(id, payload) {
     return api.put(`${RESOURCE}/validar-pago/${id}`, payload)

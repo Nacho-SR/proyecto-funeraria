@@ -7,7 +7,7 @@ export const createUsuarioSchema = z.object({
   amaterno: z.string().optional(),
   email: z.string().email(),
   passwordHash: z.string().min(6),
-  rol: z.enum(['ADMIN', 'COBRADOR', 'CLIENTE']),
+  rol: z.enum(['admin', 'cobrador', 'cliente']),
   referenciaID: z.string().optional(),
   activo: z.boolean().optional().default(true)
 })
@@ -18,6 +18,6 @@ export const updateUsuarioSchema = z.object({
   amaterno: z.string().optional(),
   email: z.string().email().optional(),
   passwordHash: z.string().min(6).optional(),
-  rol: z.enum(['ADMIN', 'COBRADOR', 'CLIENTE']).optional(),
+  rol: z.enum(['admin', 'cobrador', 'cliente']).optional(),
   activo: z.boolean().optional()
 }).strict()

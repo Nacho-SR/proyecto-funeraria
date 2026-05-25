@@ -21,9 +21,9 @@ async function cargar() {
   try {
     const { data } = await pagoService.listar()
     const lista = Array.isArray(data) ? data : data.pagos ?? []
-    pagos.value = lista.filter(p => p.estatus === 'pendiente' || p.estado === 'pendiente')
+    pagos.value = lista.filter(p => p.estatus === 'por validar' || p.estado === 'por validar')
   } catch {
-    error.value = 'No se pudieron cargar los pagos pendientes.'
+    error.value = 'No se pudieron cargar los pagos por validar.'
   } finally {
     cargando.value = false
   }
@@ -50,7 +50,7 @@ async function confirmar() {
   error.value = ''
   try {
     const id = pagoSeleccionado.value.pagoID ?? pagoSeleccionado.value.id
-    const nuevoEstatus = accionPendiente.value === 'aprobar' ? 'pagado' : 'cancelado'
+    const nuevoEstatus = accionPendiente.value === 'aprobar' ? 'validado' : 'cancelado'
     await pagoService.validar(id, { estatus: nuevoEstatus })
     exito.value = accionPendiente.value === 'aprobar'
       ? 'Pago aprobado correctamente.'
@@ -79,7 +79,7 @@ onMounted(cargar)
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
       <div>
         <h3 class="mb-0 fw-bold" style="color: var(--primary)">Validación de cobros</h3>
-        <small class="text-muted">{{ filtrados.length }} pago(s) pendiente(s)</small>
+        <small class="text-muted">{{ filtrados.length }} pago(s) por validar</small>
       </div>
     </div>
 
