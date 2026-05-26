@@ -34,7 +34,8 @@ const filtrados = computed(() => {
   if (!q) return pagos.value
   return pagos.value.filter(p =>
     String(p.contratoID ?? p.contrato_id ?? '').toLowerCase().includes(q) ||
-    String(p.cliente ?? '').toLowerCase().includes(q)
+    String(p.cliente ?? '').toLowerCase().includes(q) ||
+    String(p.ruta_cobros_id ?? '').toLowerCase().includes(q)
   )
 })
 
@@ -51,10 +52,13 @@ async function confirmar() {
   try {
     const id = pagoSeleccionado.value.pagoID ?? pagoSeleccionado.value.id
     const nuevoEstatus = accionPendiente.value === 'aprobar' ? 'validado' : 'cancelado'
-    await pagoService.validar(id, { estatus: nuevoEstatus })
-    exito.value = accionPendiente.value === 'aprobar'
+    const { data } = await pagoService.validar(id, { estatus: nuevoEstatus })
+    const mensajeBase = accionPendiente.value === 'aprobar'
       ? 'Pago aprobado correctamente.'
       : 'Pago rechazado correctamente.'
+    exito.value = data?.rutaRenovada
+      ? `${mensajeBase} La ruta fue reactivada para ${formatoFecha(data.rutaRenovada.fecha_inicio)}.`
+      : mensajeBase
     modalVisible.value = false
     await cargar()
   } catch {
@@ -70,6 +74,13 @@ const mensajeModal = computed(() => {
   const accion = accionPendiente.value === 'aprobar' ? 'aprobar' : 'rechazar'
   return `¿Deseas ${accion} el pago de $${monto}? Esta acción no se puede deshacer.`
 })
+
+function formatoFecha(valor) {
+  if (!valor) return 'la siguiente fecha'
+  const fecha = new Date(valor)
+  if (Number.isNaN(fecha.getTime())) return valor
+  return fecha.toLocaleDateString('es-MX')
+}
 
 onMounted(cargar)
 </script>
@@ -117,6 +128,7 @@ onMounted(cargar)
               <th>Monto</th>
               <th>Fecha pago</th>
               <th>Cobrador</th>
+              <th>Ruta</th>
               <th class="text-end">Acciones</th>
             </tr>
           </thead>
@@ -127,6 +139,7 @@ onMounted(cargar)
               <td class="fw-semibold">${{ Number(p.monto ?? 0).toLocaleString('es-MX') }}</td>
               <td>{{ p.fechaPago ? new Date(p.fechaPago).toLocaleDateString('es-MX') : '—' }}</td>
               <td>{{ p.cobrador ?? '—' }}</td>
+              <td>{{ p.ruta_cobros_id ?? 'â€”' }}</td>
               <td class="text-end">
                 <div class="d-flex gap-2 justify-content-end">
                   <button

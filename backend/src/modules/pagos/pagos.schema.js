@@ -7,3 +7,7 @@ export const pagoSchema = z.object({
 
 export const nuevoPagoSchema = pagoSchema
 
+export const validarPagoSchema = z.object({
+    estatus: z.enum(['validado', 'cancelado'])
+})
+

@@ -17,6 +17,31 @@ export class AdministrativosService {
     return `${nombre} ${apaterno} ${amaterno}`.trim()
   }
 
+  calcularProximaFecha(fechaBase, periodicidad) {
+    const segundos = fechaBase?.seconds ?? fechaBase?._seconds
+    const fecha = fechaBase?.toDate
+      ? fechaBase.toDate()
+      : segundos
+        ? new Date(segundos * 1000)
+        : new Date(fechaBase)
+    if (Number.isNaN(fecha.getTime())) {
+      throw new ApiError(400, 'Fecha de ruta invalida')
+    }
+
+    const siguiente = new Date(fecha)
+    if (periodicidad === 'semanal') {
+      siguiente.setDate(siguiente.getDate() + 7)
+    } else if (periodicidad === 'quincenal') {
+      siguiente.setDate(siguiente.getDate() + 14)
+    } else if (periodicidad === 'mensual') {
+      siguiente.setMonth(siguiente.getMonth() + 1)
+    } else {
+      throw new ApiError(400, 'Periodicidad de ruta invalida')
+    }
+
+    return siguiente.toISOString().slice(0, 10)
+  }
+
   async listarClientesActivos() {
     return await this.repo.listarClientesActivos()
   }
@@ -349,6 +374,7 @@ export class AdministrativosService {
     const rutaCobro = {
       ...data,
       estado: 'asignada',
+      proxima_fecha: this.calcularProximaFecha(data.fecha_inicio, data.periodicidad),
       activo: data.activo ?? true,
       fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
       fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
@@ -372,6 +398,27 @@ export class AdministrativosService {
 
     const nuevoPago = await this.repo.newPago(pago)
     return { nuevoPago }
+  }
+
+  async listarPagos() {
+    return await this.repo.listarPagos()
+  }
+
+  async obtenerPago(id) {
+    const pago = await this.repo.obtenerPago(id)
+    if (!pago) {
+      throw new ApiError(404, 'Pago no encontrado')
+    }
+    return pago
+  }
+
+  async validarPago(id, estatus, usuarioId) {
+    return await this.repo.validarPago({
+      pagoId: id,
+      estatus,
+      usuarioId,
+      calcularProximaFecha: this.calcularProximaFecha.bind(this)
+    })
   }
 
   async obtenerHistorialCliente(clienteID) {
