@@ -2,7 +2,6 @@ import { db } from '../../config/firebase.js'
 
 export class ClientesRepository {
 
-
   async findBeneficiarioByName(nombre) {
     console.log('Buscando beneficiario por nombre:', nombre)
     const benef = await db.collection("beneficiarios").where('nombre', '==', nombre).limit(1).get()

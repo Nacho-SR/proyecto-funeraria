@@ -267,4 +267,25 @@ export class CobradoresRepository {
       throw new ApiError(404, 'Ruta de cobro inactiva')
     }
   }
+
+  async darBajaLogica(cobradorId) {
+    const ref = db.collection('cobradores').doc(cobradorId)
+    const snap = await ref.get()
+
+    if (!snap.exists) {
+      throw new ApiError(404, 'Cobrador no encontrado')
+    }
+
+    const datos = snap.data()
+    if (datos.activo === false) {
+      throw new ApiError(409, 'El cobrador ya está dado de baja')
+    }
+
+    await ref.update({
+      activo: false,
+      fecha_modificacion: SERVER_TIMESTAMP()
+    })
+
+    return { cobradorID: cobradorId, activo: false }
+  }
 }
