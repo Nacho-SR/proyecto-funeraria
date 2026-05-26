@@ -92,11 +92,20 @@ onUnmounted(() => document.removeEventListener('click', clickFuera))
                 <li><router-link to="/lista-pagos" @click="cerrarTodo">Lista de pagos</router-link></li>
               </ul>
             </li>
+            <li class="nav-item dropdown-parent">
+              <span class="nav-link text-white nav-dropdown-toggle">Rutas</span>
+              <ul class="nav-dropdown-menu">
+                <li><router-link to="/asignar-ruta-cobro" @click="cerrarTodo">Nueva ruta de cobro</router-link></li>
+              </ul>
+            </li>
           </template>
 
           <template v-else-if="isAutenticado && esCobrador">
             <li class="nav-item">
               <router-link class="nav-link text-white" to="/dashboard-cobrador" @click="cerrarTodo">Panel cobrador</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link class="nav-link text-white" to="/rutas-cobro" @click="cerrarTodo">Rutas de cobro</router-link>
             </li>
           </template>
 

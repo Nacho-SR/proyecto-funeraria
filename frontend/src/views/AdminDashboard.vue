@@ -32,6 +32,12 @@ const secciones = [
       { titulo: 'Dashboard general', ruta: '/dashboard', desc: 'Consulta indicadores del sistema.' },
     ],
   },
+  {
+    titulo: 'Rutas',
+    items: [
+      { titulo: 'Nueva ruta de cobro', ruta: '/asignar-ruta-cobro', desc: 'Asigna contratos a un cobrador y ordena visitas.' },
+    ],
+  },
 ]
 </script>
 

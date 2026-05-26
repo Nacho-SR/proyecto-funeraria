@@ -4,9 +4,9 @@ import { useAuth } from '@/composables/useAuth'
 const { usuario } = useAuth()
 
 const acciones = [
-  { titulo: 'Ruta asignada', texto: 'Consulta tus visitas y el orden de cobro del dia.', estado: 'Pendiente' },
-  { titulo: 'Registrar cobro', texto: 'Captura pagos recibidos durante la ruta.', estado: 'Pendiente' },
-  { titulo: 'Historial', texto: 'Revisa cobros realizados y su estado de validacion.', estado: 'Pendiente' },
+  { titulo: 'Rutas asignadas', texto: 'Consulta tus visitas y el orden de cobro del dia.', accion: 'Abrir rutas', to: '/rutas-cobro' },
+  { titulo: 'Registro guiado', texto: 'Inicia una ruta y captura el resultado de cada destino.', accion: 'Continuar', to: '/rutas-cobro' },
+  { titulo: 'Historial de ruta', texto: 'Revisa los destinos completados y el monto recibido.', accion: 'Ver avance', to: '/rutas-cobro' },
 ]
 </script>
 
@@ -24,7 +24,9 @@ const acciones = [
           <div>
             <h6 class="fw-bold mb-1">{{ accion.titulo }}</h6>
             <p class="text-muted small mb-2">{{ accion.texto }}</p>
-            <span class="badge bg-secondary">{{ accion.estado }}</span>
+            <router-link class="btn btn-sm btn-outline-secondary" :to="accion.to">
+              {{ accion.accion }}
+            </router-link>
           </div>
         </div>
       </div>
