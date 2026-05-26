@@ -254,6 +254,9 @@ export class AdministrativosService {
   
 
   async crearPaqueteAdicional(data) {
+    data.paquete_id = data.paquete_id ?? data.paquetes_id
+    data.adicional_id = data.adicional_id ?? data.adicionales_id
+
     if ((data.hasOwnProperty('paquete') == false && data.hasOwnProperty('adicional') == false) && (data.hasOwnProperty('paquete_id') == false && data.hasOwnProperty('adicional_id') == false )) {
       throw new ApiError(400, 'Datos de paquete y/o adicional son requeridos')
     }
