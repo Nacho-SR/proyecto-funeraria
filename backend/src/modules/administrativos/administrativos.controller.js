@@ -6,7 +6,8 @@ import { nuevoClienteSchema,
           nuevoCobradorSchema,
           createPaqueteAdicionalSchema,
           createContratoSchema,
-          nuevaRutaCobroSchema
+          nuevaRutaCobroSchema,
+          revisarVisitaRutaSchema
         } from './asignaciones.schema.js'
 import { nuevoPagoSchema, validarPagoSchema } from '../pagos/pagos.schema.js'
 import { AdministrativosService } from './administrativos.service.js'
@@ -101,6 +102,27 @@ export const obtenerPagosPorCliente = async (req, res) => {
 export const listarRutasCobro = async (req, res) => {
   const rutas = await service.listarRutasCobro()
   res.status(200).json({ rutas })
+}
+
+export const listarRutasCobroValidacion = async (req, res) => {
+  const rutas = await service.listarRutasCobroValidacion()
+  res.status(200).json({ rutas })
+}
+
+export const obtenerRutaCobroValidacion = async (req, res) => {
+  const ruta = await service.obtenerRutaCobroValidacion(req.params.id)
+  res.status(200).json({ ruta })
+}
+
+export const revisarVisitaRuta = async (req, res) => {
+  const payload = revisarVisitaRutaSchema.parse(req.body)
+  const resultado = await service.revisarVisitaRuta(req.params.id, req.params.detalleId, payload, req.user.usuarios_id)
+  res.status(200).json(resultado)
+}
+
+export const terminarValidacionRuta = async (req, res) => {
+  const resultado = await service.terminarValidacionRuta(req.params.id, req.user.usuarios_id)
+  res.status(200).json(resultado)
 }
 
 export const darBajaCliente = async (req, res) => {

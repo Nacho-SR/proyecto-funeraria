@@ -58,6 +58,18 @@ export class AdministrativosService {
     return await this.repo.listarRutasCobro()
   }
 
+  async listarRutasCobroValidacion() {
+    return await this.repo.listarRutasCobroValidacion()
+  }
+
+  async obtenerRutaCobroValidacion(rutaId) {
+    const ruta = await this.repo.obtenerRutaCobroValidacion(rutaId)
+    if (!ruta) {
+      throw new ApiError(404, 'Ruta de cobro no encontrada')
+    }
+    return ruta
+  }
+
   async obtenerDetallesCobro(rutaCobroId) {
     const rutaCobro = await this.repo.findRutaCobroById(rutaCobroId)
     if (!rutaCobro) {
@@ -374,6 +386,7 @@ export class AdministrativosService {
     const rutaCobro = {
       ...data,
       estado: 'asignada',
+      ciclo_actual: 1,
       proxima_fecha: this.calcularProximaFecha(data.fecha_inicio, data.periodicidad),
       activo: data.activo ?? true,
       fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
@@ -416,6 +429,22 @@ export class AdministrativosService {
     return await this.repo.validarPago({
       pagoId: id,
       estatus,
+      usuarioId
+    })
+  }
+
+  async revisarVisitaRuta(rutaId, detalleId, payload, usuarioId) {
+    return await this.repo.revisarVisitaRuta({
+      rutaId,
+      detalleId,
+      estatusPago: payload.estatus_pago,
+      usuarioId
+    })
+  }
+
+  async terminarValidacionRuta(rutaId, usuarioId) {
+    return await this.repo.terminarValidacionRuta({
+      rutaId,
       usuarioId,
       calcularProximaFecha: this.calcularProximaFecha.bind(this)
     })

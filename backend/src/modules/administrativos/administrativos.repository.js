@@ -532,9 +532,8 @@ export class AdministrativosRepository {
     return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime()
   }
 
-  async validarPago({ pagoId, estatus, usuarioId, calcularProximaFecha }) {
+  async validarPago({ pagoId, estatus, usuarioId }) {
     const pagoRef = db.collection("pagos").doc(pagoId)
-    let rutaRenovada = null
 
     await db.runTransaction(async transaction => {
       const pagoDoc = await transaction.get(pagoRef)
@@ -555,20 +554,6 @@ export class AdministrativosRepository {
       if (estatus === 'validado' && (!contratoDoc || !contratoDoc.exists)) {
         throw new ApiError(404, 'Contrato del pago no encontrado')
       }
-
-      const rutaId = pago.ruta_cobros_id
-      const rutaRef = rutaId ? db.collection("ruta_cobros").doc(rutaId) : null
-      const rutaDoc = rutaRef ? await transaction.get(rutaRef) : null
-      const pendientesSnap = rutaId
-        ? await transaction.get(
-            db.collection("pagos")
-              .where('ruta_cobros_id', '==', rutaId)
-              .where('estatus', '==', 'por validar')
-          )
-        : null
-      const detallesSnap = rutaId
-        ? await transaction.get(db.collection("detalle_ruta_cobros").where('ruta_cobros_id', '==', rutaId))
-        : null
 
       const updatePago = {
         estatus,
@@ -603,44 +588,6 @@ export class AdministrativosRepository {
         transaction.update(contratoRef, updateContrato)
       }
 
-      const ruta = rutaDoc?.exists ? { ruta_cobros_id: rutaDoc.id, ...rutaDoc.data() } : null
-      const pendientesRestantes = pendientesSnap
-        ? pendientesSnap.docs.filter(doc => doc.id !== pagoId).length
-        : 0
-      const detallesCompletos = detallesSnap
-        ? detallesSnap.docs.length > 0 && detallesSnap.docs.every(doc => doc.data().resultado || doc.data().fecha_realizacion)
-        : false
-
-      if (ruta && ruta.estado === 'completada' && pendientesRestantes === 0 && detallesCompletos) {
-        const nuevaFechaInicio = ruta.proxima_fecha ?? calcularProximaFecha(ruta.fecha_inicio, ruta.periodicidad)
-        const nuevaProximaFecha = calcularProximaFecha(nuevaFechaInicio, ruta.periodicidad)
-
-        transaction.update(rutaRef, {
-          estado: 'asignada',
-          fecha_inicio: nuevaFechaInicio,
-          proxima_fecha: nuevaProximaFecha,
-          fecha_ultima_renovacion: admin.firestore.FieldValue.serverTimestamp(),
-          fecha_modificacion: admin.firestore.FieldValue.serverTimestamp(),
-          actualizado_por: usuarioId
-        })
-
-        detallesSnap.docs.forEach(detalleDoc => {
-          transaction.update(detalleDoc.ref, {
-            resultado: null,
-            monto_recibido: 0,
-            fecha_realizacion: null,
-            fecha_modificacion: admin.firestore.FieldValue.serverTimestamp(),
-            actualizado_por: usuarioId
-          })
-        })
-
-        rutaRenovada = {
-          ruta_cobros_id: rutaId,
-          fecha_inicio: nuevaFechaInicio,
-          proxima_fecha: nuevaProximaFecha
-        }
-      }
-
       return {
         ...pago,
         ...updatePago,
@@ -650,8 +597,309 @@ export class AdministrativosRepository {
 
     return {
       pago: await this.obtenerPago(pagoId),
-      rutaRenovada
+      rutaRenovada: null
     }
+  }
+
+  async listarRutasCobroValidacion() {
+    const rutasSnapshot = await db.collection('ruta_cobros')
+      .where('activo', '==', true)
+      .get()
+
+    const rutas = await Promise.all(rutasSnapshot.docs.map(async doc => {
+      const ruta = { ruta_cobros_id: doc.id, ...doc.data() }
+      const cobradorInfo = ruta.cobradores_id ? await this.cobradorInfoById(ruta.cobradores_id) : null
+      const resumen = await this.resumenValidacionRuta(ruta)
+
+      return {
+        ...ruta,
+        cobrador: cobradorInfo ? this.nombreCompleto(cobradorInfo.usuario) : null,
+        resumen
+      }
+    }))
+
+    return rutas.sort((a, b) => this.fechaMillis(b.fecha_inicio) - this.fechaMillis(a.fecha_inicio))
+  }
+
+  async obtenerRutaCobroValidacion(rutaId) {
+    const rutaDoc = await db.collection('ruta_cobros').doc(rutaId).get()
+    if (!rutaDoc.exists) return null
+
+    const ruta = { ruta_cobros_id: rutaDoc.id, ...rutaDoc.data() }
+    const detallesSnapshot = await db.collection('detalle_ruta_cobros')
+      .where('ruta_cobros_id', '==', rutaId)
+      .get()
+    const detalles = await Promise.all(detallesSnapshot.docs.map(doc => this.detalleValidacionCompleto(doc, ruta)))
+    detalles.sort((a, b) => Number(a.detalle.orden_visita ?? 0) - Number(b.detalle.orden_visita ?? 0))
+
+    const cobradorInfo = ruta.cobradores_id ? await this.cobradorInfoById(ruta.cobradores_id) : null
+
+    return {
+      ...ruta,
+      cobrador: cobradorInfo ? this.nombreCompleto(cobradorInfo.usuario) : null,
+      resumen: this.calcularResumenValidacion(detalles.map(item => item.detalle), this.cicloActual(ruta)),
+      detalles
+    }
+  }
+
+  async revisarVisitaRuta({ rutaId, detalleId, estatusPago, usuarioId }) {
+    const rutaRef = db.collection('ruta_cobros').doc(rutaId)
+    const detalleRef = db.collection('detalle_ruta_cobros').doc(detalleId)
+
+    await db.runTransaction(async transaction => {
+      const rutaDoc = await transaction.get(rutaRef)
+      if (!rutaDoc.exists) throw new ApiError(404, 'Ruta de cobro no encontrada')
+
+      const ruta = { ruta_cobros_id: rutaDoc.id, ...rutaDoc.data() }
+      const cicloActual = this.cicloActual(ruta)
+
+      const detalleDoc = await transaction.get(detalleRef)
+      if (!detalleDoc.exists) throw new ApiError(404, 'Visita no encontrada')
+
+      const detalle = { detalle_ruta_cobros_id: detalleDoc.id, ...detalleDoc.data() }
+      if (detalle.ruta_cobros_id !== rutaId) {
+        throw new ApiError(404, 'La visita no pertenece a la ruta indicada')
+      }
+      if (!this.detalleVisitadoEnCiclo(detalle, cicloActual)) {
+        throw new ApiError(409, 'La visita aun no tiene resultado capturado para este ciclo')
+      }
+
+      const pagoSnap = await transaction.get(
+        db.collection('pagos')
+          .where('ruta_cobros_id', '==', rutaId)
+          .where('detalle_ruta_cobros_id', '==', detalleId)
+          .where('ciclo_ruta', '==', cicloActual)
+          .limit(1)
+      )
+      const pagoDoc = pagoSnap.empty ? null : pagoSnap.docs[0]
+      const pago = pagoDoc ? { pagos_id: pagoDoc.id, ...pagoDoc.data() } : null
+      const estatusActual = pago?.estatus ?? pago?.estado
+
+      if (detalle.resultado === 'pagado') {
+        if (!pago) throw new ApiError(404, 'Pago de la visita no encontrado')
+        if (estatusActual === 'por validar' && !estatusPago) {
+          throw new ApiError(400, 'Indica si el pago se valida o se cancela')
+        }
+      }
+
+      if (pago && estatusActual === 'por validar' && estatusPago) {
+        const pagoRef = db.collection('pagos').doc(pago.pagos_id)
+        let contratoRef = null
+        let updateContrato = null
+        if (estatusPago === 'validado') {
+          const contratoId = pago.contratos_id ?? pago.contrato_id
+          contratoRef = db.collection('contratos').doc(contratoId)
+          const contratoDoc = await transaction.get(contratoRef)
+          if (!contratoDoc.exists) throw new ApiError(404, 'Contrato del pago no encontrado')
+
+          const contrato = contratoDoc.data()
+          const abonadoActual = Number(contrato.abonado ?? 0)
+          const monto = Number(pago.monto ?? 0)
+          const nuevoAbonado = abonadoActual + monto
+          const precioFinal = Number(contrato.precio_final ?? 0)
+
+          if (Number.isFinite(precioFinal) && precioFinal > 0 && nuevoAbonado > precioFinal) {
+            throw new ApiError(400, 'El monto del pago excede el saldo pendiente del contrato')
+          }
+
+          updateContrato = {
+            abonado: nuevoAbonado,
+            fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+          }
+          if (Number.isFinite(precioFinal) && precioFinal > 0 && nuevoAbonado >= precioFinal) {
+            updateContrato.estado = 'pagado'
+          }
+        }
+
+        transaction.update(pagoRef, {
+          estatus: estatusPago,
+          fecha_validacion: admin.firestore.FieldValue.serverTimestamp(),
+          fecha_modificacion: admin.firestore.FieldValue.serverTimestamp(),
+          validado_por: usuarioId,
+          actualizado_por: usuarioId
+        })
+
+        if (contratoRef && updateContrato) {
+          transaction.update(contratoRef, updateContrato)
+        }
+      }
+
+      transaction.update(detalleRef, {
+        revisado: true,
+        revision_ciclo: cicloActual,
+        estatus_pago_revision: estatusPago ?? estatusActual ?? null,
+        fecha_revision: admin.firestore.FieldValue.serverTimestamp(),
+        revisado_por: usuarioId,
+        fecha_modificacion: admin.firestore.FieldValue.serverTimestamp(),
+        actualizado_por: usuarioId
+      })
+    })
+
+    return {
+      ruta: await this.obtenerRutaCobroValidacion(rutaId)
+    }
+  }
+
+  async terminarValidacionRuta({ rutaId, usuarioId, calcularProximaFecha }) {
+    const rutaRef = db.collection('ruta_cobros').doc(rutaId)
+    let rutaRenovada = null
+
+    await db.runTransaction(async transaction => {
+      const rutaDoc = await transaction.get(rutaRef)
+      if (!rutaDoc.exists) throw new ApiError(404, 'Ruta de cobro no encontrada')
+
+      const ruta = { ruta_cobros_id: rutaDoc.id, ...rutaDoc.data() }
+      const cicloActual = this.cicloActual(ruta)
+      if (ruta.estado !== 'completada') {
+        throw new ApiError(409, 'Solo se pueden terminar rutas completadas')
+      }
+
+      const detallesSnap = await transaction.get(
+        db.collection('detalle_ruta_cobros').where('ruta_cobros_id', '==', rutaId)
+      )
+
+      if (detallesSnap.empty) {
+        throw new ApiError(409, 'La ruta no tiene visitas asignadas')
+      }
+
+      const pendientes = detallesSnap.docs.filter(doc => {
+        const detalle = doc.data()
+        return !this.detalleVisitadoEnCiclo(detalle, cicloActual) || !this.detalleRevisadoEnCiclo(detalle, cicloActual)
+      })
+
+      if (pendientes.length > 0) {
+        throw new ApiError(409, 'Aun hay visitas pendientes de revisar')
+      }
+
+      const nuevaFechaInicio = ruta.proxima_fecha ?? calcularProximaFecha(ruta.fecha_inicio, ruta.periodicidad)
+      const nuevaProximaFecha = calcularProximaFecha(nuevaFechaInicio, ruta.periodicidad)
+      const siguienteCiclo = cicloActual + 1
+      const fechaCierre = new Date().toISOString()
+
+      detallesSnap.docs.forEach(detalleDoc => {
+        const detalle = detalleDoc.data()
+        transaction.update(detalleDoc.ref, {
+          historial_ciclos: admin.firestore.FieldValue.arrayUnion({
+            ciclo: cicloActual,
+            resultado: detalle.resultado ?? null,
+            monto_recibido: Number(detalle.monto_recibido ?? 0),
+            fecha_realizacion: this.serializarFecha(detalle.fecha_realizacion),
+            revisado: true,
+            estatus_pago_revision: detalle.estatus_pago_revision ?? null,
+            fecha_revision: this.serializarFecha(detalle.fecha_revision),
+            fecha_cierre: fechaCierre
+          }),
+          fecha_modificacion: admin.firestore.FieldValue.serverTimestamp(),
+          actualizado_por: usuarioId
+        })
+      })
+
+      transaction.update(rutaRef, {
+        estado: 'asignada',
+        ciclo_actual: siguienteCiclo,
+        fecha_inicio: nuevaFechaInicio,
+        proxima_fecha: nuevaProximaFecha,
+        fecha_ultima_renovacion: admin.firestore.FieldValue.serverTimestamp(),
+        fecha_modificacion: admin.firestore.FieldValue.serverTimestamp(),
+        actualizado_por: usuarioId
+      })
+
+      rutaRenovada = {
+        ruta_cobros_id: rutaId,
+        ciclo_actual: siguienteCiclo,
+        fecha_inicio: nuevaFechaInicio,
+        proxima_fecha: nuevaProximaFecha
+      }
+    })
+
+    return {
+      rutaRenovada,
+      rutas: await this.listarRutasCobroValidacion()
+    }
+  }
+
+  async resumenValidacionRuta(ruta) {
+    const detallesSnap = await db.collection('detalle_ruta_cobros')
+      .where('ruta_cobros_id', '==', ruta.ruta_cobros_id)
+      .get()
+    return this.calcularResumenValidacion(detallesSnap.docs.map(doc => doc.data()), this.cicloActual(ruta))
+  }
+
+  calcularResumenValidacion(detalles, cicloActual) {
+    const total = detalles.length
+    const visitadas = detalles.filter(detalle => this.detalleVisitadoEnCiclo(detalle, cicloActual)).length
+    const revisadas = detalles.filter(detalle => this.detalleRevisadoEnCiclo(detalle, cicloActual)).length
+    const montoRecibido = detalles
+      .filter(detalle => Number(detalle.ciclo ?? 0) === cicloActual)
+      .reduce((totalMonto, detalle) => totalMonto + Number(detalle.monto_recibido ?? 0), 0)
+
+    return {
+      total,
+      visitadas,
+      revisadas,
+      pendientes_revision: total - revisadas,
+      monto_recibido: montoRecibido
+    }
+  }
+
+  async detalleValidacionCompleto(detalleDoc, ruta) {
+    const detalle = { detalle_ruta_cobros_id: detalleDoc.id, ...detalleDoc.data() }
+    const contratoId = detalle.contratos_id ?? detalle.contrato_id
+    const direccionCobroId = detalle.direccion_cobro_id ?? detalle.direcciones_cobro_id
+    const cicloActual = this.cicloActual(ruta)
+
+    const [contratoDoc, direccionDoc, pago] = await Promise.all([
+      contratoId ? db.collection('contratos').doc(contratoId).get() : null,
+      direccionCobroId ? db.collection('direcciones_cobro').doc(direccionCobroId).get() : null,
+      this.pagoPorDetalleRuta(ruta.ruta_cobros_id, detalle.detalle_ruta_cobros_id, cicloActual)
+    ])
+
+    const contrato = contratoDoc?.exists
+      ? { contratos_id: contratoDoc.id, ...contratoDoc.data() }
+      : null
+    const cliente = contrato?.clientes_id ? await this.clienteInfoById(contrato.clientes_id) : null
+    const direccionCobro = direccionDoc?.exists
+      ? { direcciones_cobro_id: direccionDoc.id, ...direccionDoc.data() }
+      : null
+
+    return {
+      detalle,
+      contrato,
+      cliente,
+      direccion_cobro: direccionCobro,
+      pago
+    }
+  }
+
+  async pagoPorDetalleRuta(rutaId, detalleId, cicloActual) {
+    const pagoSnap = await db.collection('pagos')
+      .where('ruta_cobros_id', '==', rutaId)
+      .where('detalle_ruta_cobros_id', '==', detalleId)
+      .where('ciclo_ruta', '==', cicloActual)
+      .limit(1)
+      .get()
+    if (pagoSnap.empty) return null
+    return await this.enriquecerPago({ pagos_id: pagoSnap.docs[0].id, id: pagoSnap.docs[0].id, ...pagoSnap.docs[0].data() })
+  }
+
+  cicloActual(ruta) {
+    return Number(ruta.ciclo_actual ?? 1)
+  }
+
+  detalleVisitadoEnCiclo(detalle, cicloActual) {
+    return Number(detalle.ciclo ?? 0) === cicloActual && Boolean(detalle.resultado || detalle.fecha_realizacion)
+  }
+
+  detalleRevisadoEnCiclo(detalle, cicloActual) {
+    return Number(detalle.revision_ciclo ?? 0) === cicloActual && detalle.revisado === true
+  }
+
+  serializarFecha(fecha) {
+    if (!fecha) return null
+    if (fecha.toDate) return fecha.toDate().toISOString()
+    if (fecha.seconds || fecha._seconds) return new Date((fecha.seconds ?? fecha._seconds) * 1000).toISOString()
+    const parsed = new Date(fecha)
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString()
   }
 
   async getPagosByCliente(clienteID) {

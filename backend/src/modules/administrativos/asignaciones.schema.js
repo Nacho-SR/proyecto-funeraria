@@ -118,3 +118,7 @@ export const updateAsignacionCobroSchema = z.object({
     contratoID: z.string(),
   })).optional()
 }).strict()
+
+export const revisarVisitaRutaSchema = z.object({
+  estatus_pago: z.enum(['validado', 'cancelado']).optional()
+})

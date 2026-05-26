@@ -28,6 +28,7 @@ const routes = [
   { path: '/lista-contratos', name: 'lista-contratos', component: () => import('../views/ListaContratosView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/lista-pagos', name: 'lista-pagos', component: () => import('../views/ListaPagosView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/validacion-cobros', name: 'validacion-cobros', component: () => import('../views/ValidacionCobrosView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
+  { path: '/validacion-cobros/ruta/:id', name: 'validacion-ruta-cobro', component: () => import('../views/ValidacionRutaCobroView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/modulo-pagos', name: 'modulo-pagos', component: () => import('../views/ModuloPagosView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/asignar-ruta-cobro', name: 'asignar-ruta-cobro', component: () => import('../views/AsignarRutaCobroView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
 

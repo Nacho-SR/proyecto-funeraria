@@ -23,7 +23,7 @@ export class CobradoresRepository {
     const rutasActivas = snapshot.docs.filter(doc => doc.data().activo !== false)
     const rutas = await Promise.all(rutasActivas.map(async doc => {
       const ruta = { ruta_cobros_id: doc.id, ...doc.data() }
-      const resumen = await this.resumenDetallesRuta(doc.id)
+      const resumen = await this.resumenDetallesRuta(ruta)
       return { ...ruta, resumen }
     }))
 
@@ -50,7 +50,7 @@ export class CobradoresRepository {
 
     return {
       ...ruta,
-      resumen: this.calcularResumen(detalles.map(item => item.detalle)),
+      resumen: this.calcularResumen(detalles.map(item => item.detalle), this.cicloActual(ruta)),
       detalles
     }
   }
@@ -89,6 +89,7 @@ export class CobradoresRepository {
 
       const ruta = { ruta_cobros_id: rutaDoc.id, ...rutaDoc.data() }
       this.validarRutaDelCobrador(ruta, cobradorId)
+      const cicloActual = this.cicloActual(ruta)
 
       const detalleDoc = await transaction.get(detalleRef)
       if (!detalleDoc.exists) throw new ApiError(404, 'Destino de cobro no encontrado')
@@ -97,7 +98,7 @@ export class CobradoresRepository {
       if (detalle.ruta_cobros_id !== rutaId) {
         throw new ApiError(404, 'Destino de cobro no pertenece a la ruta indicada')
       }
-      if (detalle.resultado || detalle.fecha_realizacion) {
+      if (this.detalleRegistradoEnCiclo(detalle, cicloActual)) {
         throw new ApiError(409, 'Este destino ya fue registrado y no puede modificarse')
       }
 
@@ -112,13 +113,17 @@ export class CobradoresRepository {
       const rutaCompletada = detallesSnapshot.docs.every(doc => {
         if (doc.id === detalleId) return true
         const data = doc.data()
-        return Boolean(data.resultado || data.fecha_realizacion)
+        return this.detalleRegistradoEnCiclo(data, cicloActual)
       })
 
       const updateDetalle = {
+        ciclo: cicloActual,
         resultado,
         monto_recibido: montoRecibido,
         fecha_realizacion: SERVER_TIMESTAMP(),
+        revisado: false,
+        fecha_revision: null,
+        revisado_por: null,
         fecha_modificacion: SERVER_TIMESTAMP(),
         actualizado_por: usuariosId
       }
@@ -135,6 +140,7 @@ export class CobradoresRepository {
           cobradores_id: cobradorId,
           ruta_cobros_id: rutaId,
           detalle_ruta_cobros_id: detalleId,
+          ciclo_ruta: cicloActual,
           creado_por: usuariosId,
           fechaPago: SERVER_TIMESTAMP(),
           fecha_creacion: SERVER_TIMESTAMP(),
@@ -165,21 +171,22 @@ export class CobradoresRepository {
     }
   }
 
-  async resumenDetallesRuta(rutaId) {
+  async resumenDetallesRuta(ruta) {
     const snapshot = await db.collection('detalle_ruta_cobros')
-      .where('ruta_cobros_id', '==', rutaId)
+      .where('ruta_cobros_id', '==', ruta.ruta_cobros_id)
       .get()
 
-    return this.calcularResumen(snapshot.docs.map(doc => doc.data()))
+    return this.calcularResumen(snapshot.docs.map(doc => doc.data()), this.cicloActual(ruta))
   }
 
-  calcularResumen(detalles) {
+  calcularResumen(detalles, cicloActual) {
     const total = detalles.length
-    const completados = detalles.filter(detalle => detalle.resultado || detalle.fecha_realizacion).length
-    const pagados = detalles.filter(detalle => detalle.resultado === 'pagado').length
-    const pospuestos = detalles.filter(detalle => detalle.resultado === 'pospuesto').length
-    const noEncontrados = detalles.filter(detalle => detalle.resultado === 'NE').length
-    const montoRecibido = detalles.reduce((totalMonto, detalle) => totalMonto + Number(detalle.monto_recibido ?? 0), 0)
+    const detallesCiclo = detalles.filter(detalle => Number(detalle.ciclo ?? 0) === cicloActual)
+    const completados = detallesCiclo.filter(detalle => detalle.resultado || detalle.fecha_realizacion).length
+    const pagados = detallesCiclo.filter(detalle => detalle.resultado === 'pagado').length
+    const pospuestos = detallesCiclo.filter(detalle => detalle.resultado === 'pospuesto').length
+    const noEncontrados = detallesCiclo.filter(detalle => detalle.resultado === 'NE').length
+    const montoRecibido = detallesCiclo.reduce((totalMonto, detalle) => totalMonto + Number(detalle.monto_recibido ?? 0), 0)
 
     return {
       total,
@@ -190,6 +197,14 @@ export class CobradoresRepository {
       no_encontrados: noEncontrados,
       monto_recibido: montoRecibido
     }
+  }
+
+  cicloActual(ruta) {
+    return Number(ruta.ciclo_actual ?? 1)
+  }
+
+  detalleRegistradoEnCiclo(detalle, cicloActual) {
+    return Number(detalle.ciclo ?? 0) === cicloActual && Boolean(detalle.resultado || detalle.fecha_realizacion)
   }
 
   async detalleCompleto(detalleDoc) {

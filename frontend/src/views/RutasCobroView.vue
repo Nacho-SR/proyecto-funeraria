@@ -18,9 +18,10 @@ const form = reactive({
 
 const resumenRuta = computed(() => rutaActiva.value?.resumen ?? {})
 const detalles = computed(() => rutaActiva.value?.detalles ?? [])
+const cicloActual = computed(() => Number(rutaActiva.value?.ciclo_actual ?? 1))
 const rutaTerminada = computed(() => detalles.value.length > 0 && pendientes.value.length === 0)
 const pendientes = computed(() =>
-  detalles.value.filter(item => !item.detalle?.resultado && !item.detalle?.fecha_realizacion)
+  detalles.value.filter(item => !visitaDelCiclo(item))
 )
 const destinoActual = computed(() => pendientes.value[0] ?? null)
 const destinoActualIndex = computed(() => {
@@ -136,6 +137,10 @@ async function confirmarResultado() {
 function limpiarForm() {
   form.resultado = 'pagado'
   form.monto_recibido = 0
+}
+
+function visitaDelCiclo(item) {
+  return Number(item?.detalle?.ciclo ?? 0) === cicloActual.value && Boolean(item?.detalle?.resultado || item?.detalle?.fecha_realizacion)
 }
 
 function nombreTitular(item) {
@@ -371,7 +376,7 @@ function resultadoClase(resultado) {
                     <strong>{{ item.detalle.orden_visita }}. {{ nombreTitular(item) }}</strong>
                     <small>{{ item.contrato?.num_contrato ?? item.contrato?.contratos_id ?? 'Sin contrato' }}</small>
                   </div>
-                  <span v-if="item.detalle.resultado" class="badge" :class="resultadoClase(item.detalle.resultado)">
+                  <span v-if="visitaDelCiclo(item)" class="badge" :class="resultadoClase(item.detalle.resultado)">
                     {{ item.detalle.resultado }} · {{ formatoMoneda(item.detalle.monto_recibido) }}
                   </span>
                   <span v-else class="badge bg-light text-dark">Pendiente</span>
