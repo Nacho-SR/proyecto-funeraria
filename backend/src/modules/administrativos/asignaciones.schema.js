@@ -124,3 +124,8 @@ export const updateAsignacionCobroSchema = z.object({
 export const revisarVisitaRutaSchema = z.object({
   estatus_pago: z.enum(['validado', 'cancelado']).optional()
 })
+
+export const resolverSolicitudBeneficiarioSchema = z.object({
+  accion: z.enum(['aprobar', 'rechazar']),
+  comentario_admin: z.string().trim().max(500).optional().default('')
+})

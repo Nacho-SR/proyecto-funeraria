@@ -140,6 +140,111 @@ export class AdministrativosRepository {
     return contratos
   }
 
+  async listarSolicitudesBeneficiarios() {
+    const solicitudesSnap = await db.collection('solicitudes_beneficiarios').get()
+    if (solicitudesSnap.empty) return []
+
+    const solicitudes = await Promise.all(solicitudesSnap.docs.map(async doc => {
+      const solicitud = { solicitud_beneficiario_id: doc.id, ...doc.data() }
+      const clienteInfo = solicitud.cliente_id ? await this.clienteInfoById(solicitud.cliente_id) : null
+      const contrato = solicitud.contratos_id ? await this.findContratoById(solicitud.contratos_id) : null
+
+      return {
+        ...solicitud,
+        cliente: clienteInfo,
+        contrato: contrato
+          ? {
+              contratos_id: contrato.contratos_id,
+              num_contrato: contrato.num_contrato ?? solicitud.num_contrato ?? null,
+              estado: contrato.estado ?? null
+            }
+          : null
+      }
+    }))
+
+    return solicitudes.sort((a, b) => this.fechaMillis(b.fecha_creacion) - this.fechaMillis(a.fecha_creacion))
+  }
+
+  async resolverSolicitudBeneficiario({ solicitudId, accion, comentarioAdmin, usuarioId }) {
+    const solicitudRef = db.collection('solicitudes_beneficiarios').doc(solicitudId)
+    let beneficiarioCreadoId = null
+
+    await db.runTransaction(async transaction => {
+      const solicitudDoc = await transaction.get(solicitudRef)
+      if (!solicitudDoc.exists) {
+        throw new ApiError(404, 'Solicitud no encontrada')
+      }
+
+      const solicitud = { solicitud_beneficiario_id: solicitudDoc.id, ...solicitudDoc.data() }
+      if (solicitud.estado !== 'pendiente') {
+        throw new ApiError(409, 'La solicitud ya fue revisada')
+      }
+
+      const updateSolicitud = {
+        estado: accion === 'aprobar' ? 'aprobada' : 'rechazada',
+        comentario_admin: comentarioAdmin,
+        revisado_por: usuarioId,
+        fecha_revision: admin.firestore.FieldValue.serverTimestamp(),
+        fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+      }
+
+      if (accion === 'aprobar') {
+        if (solicitud.tipo === 'crear') {
+          const beneficiarioRef = db.collection('beneficiarios').doc()
+          beneficiarioCreadoId = beneficiarioRef.id
+          transaction.set(beneficiarioRef, {
+            ...solicitud.datos_propuestos,
+            contrato_id: solicitud.contratos_id,
+            activo: true,
+            creado_por: usuarioId,
+            fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
+            fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+          })
+          updateSolicitud.beneficiario_creado_id = beneficiarioRef.id
+        } else {
+          const beneficiarioRef = db.collection('beneficiarios').doc(solicitud.beneficiario_id)
+          const beneficiarioDoc = await transaction.get(beneficiarioRef)
+          if (!beneficiarioDoc.exists) {
+            throw new ApiError(404, 'Beneficiario no encontrado')
+          }
+
+          const beneficiario = beneficiarioDoc.data()
+          const contratoIdBeneficiario = beneficiario.contrato_id ?? beneficiario.contratos_id
+          if (contratoIdBeneficiario !== solicitud.contratos_id) {
+            throw new ApiError(409, 'El beneficiario no pertenece al contrato de la solicitud')
+          }
+
+          if (solicitud.tipo === 'actualizar') {
+            transaction.update(beneficiarioRef, {
+              ...solicitud.datos_propuestos,
+              actualizado_por: usuarioId,
+              fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+            })
+          } else if (solicitud.tipo === 'eliminar') {
+            transaction.update(beneficiarioRef, {
+              activo: false,
+              actualizado_por: usuarioId,
+              fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+            })
+          } else {
+            throw new ApiError(400, 'Tipo de solicitud no soportado')
+          }
+        }
+      }
+
+      transaction.update(solicitudRef, updateSolicitud)
+    })
+
+    return {
+      solicitud: {
+        solicitud_beneficiario_id: solicitudId,
+        estado: accion === 'aprobar' ? 'aprobada' : 'rechazada',
+        beneficiario_creado_id: beneficiarioCreadoId
+      },
+      solicitudes: await this.listarSolicitudesBeneficiarios()
+    }
+  }
+
   async clienteInfoById(id) {
     const clienteDoc = await db.collection("clientes").doc(id).get()
     if (!clienteDoc.exists) return null

@@ -159,7 +159,9 @@ export class ClientesRepository {
 
   async listarBeneficiariosByContratoId(contratoId) {
     const snaps = await this.buscarPorContratoId('beneficiarios', contratoId)
-    return snaps.map(doc => ({ beneficiario_id: doc.id, ...doc.data() }))
+    return snaps
+      .map(doc => ({ beneficiario_id: doc.id, ...doc.data() }))
+      .filter(beneficiario => beneficiario.activo !== false)
   }
 
   async listarAdicionalesByContratoId(contratoId) {

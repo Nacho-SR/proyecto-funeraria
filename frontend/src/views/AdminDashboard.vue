@@ -11,6 +11,7 @@ const secciones = [
       { titulo: 'Cobradores', ruta: '/lista-cobradores', desc: 'Consulta y administra cobradores.' },
       { titulo: 'Contratos', ruta: '/lista-contratos', desc: 'Consulta contratos activos y estado de pago.' },
       { titulo: 'Servicios', ruta: '/lista-servicios', desc: 'Consulta paquetes y servicios.' },
+      { titulo: 'Solicitudes beneficiarios', ruta: '/solicitudes-beneficiarios', desc: 'Aprueba o rechaza cambios solicitados por clientes.' },
     ],
   },
   {

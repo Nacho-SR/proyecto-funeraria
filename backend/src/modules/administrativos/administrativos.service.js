@@ -83,6 +83,19 @@ export class AdministrativosService {
     return await this.repo.obtenerInfoContratos()
   }
 
+  async listarSolicitudesBeneficiarios() {
+    return await this.repo.listarSolicitudesBeneficiarios()
+  }
+
+  async resolverSolicitudBeneficiario(solicitudId, data, usuarioId) {
+    return await this.repo.resolverSolicitudBeneficiario({
+      solicitudId,
+      accion: data.accion,
+      comentarioAdmin: data.comentario_admin ?? '',
+      usuarioId
+    })
+  }
+
   /* Genera el siguiente num_documento con formato XX-XXXXX.
   * @param {string|null} ultimoNumDocumento - El último num_documento en la BD (ej. "25-00105"), o null si es el primero.
   * @param {Date|string|number} fechaCreacion - Fecha de creación del nuevo documento (para obtener el año).
