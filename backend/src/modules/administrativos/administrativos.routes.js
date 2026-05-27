@@ -26,6 +26,7 @@ router.get('/pagos', asyncHandler(Ctrl.listarPagos))
 router.get('/pagos/:id', asyncHandler(Ctrl.obtenerPago))
 router.get('/clientes/:id', asyncHandler(Ctrl.obtenerCliente))
 router.get('/cobradores/:id', asyncHandler(Ctrl.obtenerCobrador))
+router.get('/servicios/:id', asyncHandler(Ctrl.obtenerServicio))
 router.get('/:clienteID/pagos', asyncHandler(Ctrl.obtenerPagosPorCliente))
 router.post('/alta-cliente', asyncHandler(Ctrl.crearCliente))
 router.post('/alta-cobrador', asyncHandler(Ctrl.crearCobrador))
@@ -40,5 +41,6 @@ router.put('/rutas-cobro/:id/visitas/:detalleId/revisar', asyncHandler(Ctrl.revi
 router.put('/baja-cliente/:id', asyncHandler(Ctrl.darBajaCliente))
 router.put('/clientes/:id', asyncHandler(Ctrl.actualizarCliente))
 router.put('/cobradores/:id', asyncHandler(Ctrl.actualizarCobrador))
+router.put('/servicios/:id', asyncHandler(Ctrl.actualizarServicio))
 
 export default router

@@ -89,6 +89,12 @@ export const editarCobradorSchema = z.object({
   telefono: z.string().min(7).optional()
 }).strict()
 
+export const editarServicioSchema = z.object({
+  nombre: z.string().min(3).optional(),
+  descripcion: z.string().optional(),
+  precio: z.coerce.number().min(0).optional()
+}).strict()
+
 export const createPaqueteAdicionalSchema = z.object({
   paquete_id: z.string().min(3).optional(),
   paquetes_id: z.string().min(3).optional(),

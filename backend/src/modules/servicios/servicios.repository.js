@@ -5,11 +5,30 @@ import { db, admin } from '../../config/firebase.js'
 import { ApiError } from '../../shared/utils/apiError.js'
 
 export class ServiciosRepository {
+  async listar () {
+    const snapshot = await db.collection('adicionales').get()
+
+    return snapshot.docs.map(doc => {
+      const servicio = doc.data()
+      return {
+        servicioID: doc.id,
+        servicio_id: doc.id,
+        adicional_id: doc.id,
+        servicios_id: doc.id,
+        nombre: servicio.nombre ?? '',
+        descripcion: servicio.descripcion ?? '',
+        precio: servicio.precio ?? 0,
+        activo: servicio.activo !== false
+      }
+    })
+  }
+
   /**
    * Baja lógica: marca activo en false. No elimina el documento.
+   * Usa la colección adicionales (servicios del catálogo).
    */
   async darBajaLogica (servicioId) {
-    const ref = db.collection('servicios').doc(servicioId)
+    const ref = db.collection('adicionales').doc(servicioId)
     const snap = await ref.get()
 
     if (!snap.exists) {
@@ -26,6 +45,6 @@ export class ServiciosRepository {
       fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
     })
 
-    return { servicioID: servicioId, activo: false }
+    return { servicioID: servicioId, adicional_id: servicioId, activo: false }
   }
 }

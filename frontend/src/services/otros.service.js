@@ -19,11 +19,10 @@ export const contratoService = {
   darBaja(id)           { return api.patch(`/contratos/${id}/baja`) },
 }
 
-// ── Servicio ──────────────────────────────────────────────
+// ── Servicio (adicionales en Firestore) ──────────────────
 export const servicioService = {
   listar()              { return api.get('/servicios') },
-  obtener(id)           { return api.get(`/servicios/${id}`) },
-  crear(payload)        { return api.post('/servicios', payload) },
-  actualizar(id, data)  { return api.put(`/servicios/${id}`, data) },
+  obtener(id)           { return api.get(`/administrativos/servicios/${id}`) },
+  actualizar(id, payload)  { return api.put(`/administrativos/servicios/${id}`, payload) },
   darBaja(id)           { return api.patch(`/servicios/${id}/baja`) },
 }

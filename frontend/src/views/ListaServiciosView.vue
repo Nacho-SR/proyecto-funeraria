@@ -89,6 +89,7 @@ onMounted(cargar)
               <th>Descripción</th>
               <th>Precio base</th>
               <th>Estado</th>
+              <th class="text-end">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -106,6 +107,20 @@ onMounted(cargar)
                   {{ s.activo === false ? 'Inactivo' : 'Activo' }}
                 </span>
               </td>
+              <td v-if="s._tipo === 'Adicional'" class="text-end">
+                <router-link
+                  :to="`/editar-servicio/${s._id}`"
+                  class="btn btn-sm btn-outline-secondary me-1"
+                  title="Editar"
+                >✏️</router-link>
+                <router-link
+                  v-if="s.activo !== false"
+                  to="/baja-servicio"
+                  class="btn btn-sm btn-outline-danger"
+                  title="Dar de baja"
+                >🗑</router-link>
+              </td>
+              <td v-else class="text-muted text-end">—</td>
             </tr>
           </tbody>
         </table>

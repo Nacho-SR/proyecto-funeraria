@@ -217,6 +217,22 @@ export class AdministrativosService {
     return cobrador
   }
 
+  async obtenerServicio(id) {
+    const servicio = await this.repo.obtenerServicioEdicion(id)
+    if (!servicio) {
+      throw new ApiError(404, 'Servicio no encontrado')
+    }
+    return servicio
+  }
+
+  async actualizarServicio(id, data) {
+    const servicio = await this.repo.findAdicionalById(id)
+    if (!servicio) {
+      throw new ApiError(404, 'Servicio no encontrado')
+    }
+    return await this.repo.actualizarServicio(id, data)
+  }
+
   async actualizarCobrador(id, data) {
     const cobrador = await this.repo.findCobradorById(id)
     if (!cobrador) {

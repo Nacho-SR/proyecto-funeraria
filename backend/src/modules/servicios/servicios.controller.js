@@ -6,6 +6,15 @@ import { ApiError } from '../../shared/utils/apiError.js'
 
 const repo = new ServiciosRepository()
 
+export const listar = async (req, res) => {
+  if (req.user.rol !== 'admin') {
+    throw new ApiError(403, 'Solo administradores pueden consultar servicios')
+  }
+
+  const servicios = await repo.listar()
+  res.status(200).json(servicios)
+}
+
 export const darDeBaja = async (req, res) => {
   if (req.user.rol !== 'admin') {
     throw new ApiError(403, 'Solo administradores pueden dar de baja servicios')

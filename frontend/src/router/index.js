@@ -46,6 +46,7 @@ const routes = [
   // Edits (admin)
   { path: '/editar-cliente/:id', name: 'editar-cliente', component: () => import('../views/EditarClienteView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/editar-cobrador/:id', name: 'editar-cobrador', component: () => import('../views/EditarCobradorView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
+  { path: '/editar-servicio/:id', name: 'editar-servicio', component: () => import('../views/EditarServicioView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
 
   // Bajas lógicas (admin)
   { path: '/baja-cliente', name: 'baja-cliente', component: () => import('../views/BajaClienteView.vue'), meta: { requiresAuth: true, rol: 'admin' } },

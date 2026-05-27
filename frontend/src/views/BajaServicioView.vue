@@ -34,7 +34,11 @@ async function confirmarBaja() {
   error.value = ''
   exito.value = ''
   try {
-    await servicioService.darBaja(seleccionado.value.servicioID)
+    const id = seleccionado.value.servicioID
+      || seleccionado.value.servicio_id
+      || seleccionado.value.adicional_id
+    if (!id) return
+    await servicioService.darBaja(id)
     exito.value = `Servicio "${seleccionado.value.nombre}" dado de baja correctamente.`
     modalVisible.value = false
     await cargar()

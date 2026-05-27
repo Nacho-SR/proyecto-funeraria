@@ -449,6 +449,38 @@ export class AdministrativosRepository {
     return await this.obtenerClienteEdicion(id)
   }
 
+  async obtenerServicioEdicion(id) {
+    const adicional = await this.findAdicionalById(id)
+    if (!adicional) return null
+
+    return {
+      servicioID: id,
+      servicio_id: id,
+      nombre: adicional.nombre ?? '',
+      descripcion: adicional.descripcion ?? '',
+      precio: adicional.precio ?? 0,
+      activo: adicional.activo !== false
+    }
+  }
+
+  async actualizarServicio(id, data) {
+    const adicional = await this.findAdicionalById(id)
+    if (!adicional) {
+      throw new ApiError(404, 'Servicio no encontrado')
+    }
+
+    const update = {
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+    }
+
+    if (data.nombre !== undefined) update.nombre = data.nombre
+    if (data.descripcion !== undefined) update.descripcion = data.descripcion
+    if (data.precio !== undefined) update.precio = data.precio
+
+    await db.collection('adicionales').doc(id).update(update)
+    return await this.obtenerServicioEdicion(id)
+  }
+
   async obtenerCobradorEdicion(id) {
     const cobrador = await this.findCobradorById(id)
     if (!cobrador) return null
