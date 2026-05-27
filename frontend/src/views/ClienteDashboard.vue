@@ -17,7 +17,7 @@ const secciones = [
   {
     titulo: 'Beneficiarios',
     texto: 'Personas asociadas a tus contratos.',
-    ruta: '/mis-contratos'
+    ruta: '/mis-beneficiarios'
   },
 ]
 </script>

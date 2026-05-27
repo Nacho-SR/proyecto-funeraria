@@ -31,6 +31,21 @@ export class ClientesService {
     return await this.repo.listarPagosPorCliente(cliente.clientes_id)
   }
 
+  async listarMisBeneficiarios(usuarioId) {
+    const cliente = await this.repo.findClienteByUsuarioId(usuarioId)
+    if (!cliente) {
+      throw new ApiError(404, 'No se encontro el perfil de cliente asociado al usuario')
+    }
+
+    const contratos = await this.repo.listarContratosPorCliente(cliente.clientes_id)
+    const contratosActivos = contratos.filter(contrato =>
+      contrato.activo !== false &&
+      (contrato.estado ?? 'activo') === 'activo'
+    )
+
+    return this.repo.listarBeneficiariosPorContratos(contratosActivos)
+  }
+
   async crearNuevoBeneficiario(data) {
     console.log('Creando nuevo beneficiario con data:', data)
     console.log('Validando si el beneficiario ya existe con nombre:', data.beneficiario.nombre)

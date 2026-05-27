@@ -18,6 +18,11 @@ export async function listarMisPagos (req, res) {
   res.status(200).json({ pagos })
 }
 
+export async function listarMisBeneficiarios (req, res) {
+  const beneficiarios = await service.listarMisBeneficiarios(req.user.usuarios_id)
+  res.status(200).json({ beneficiarios })
+}
+
 export async function altaBeneficiario (req, res) {
   const { error, value } = createBeneficiariosSchema.safeParse(req.body)
   if (error) {

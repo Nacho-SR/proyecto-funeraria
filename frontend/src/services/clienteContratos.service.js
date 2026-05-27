@@ -9,5 +9,9 @@ export const clienteContratosService = {
 
   listarMisPagos() {
     return api.get(`${RESOURCE}/mis-pagos`)
+  },
+
+  listarMisBeneficiarios() {
+    return api.get(`${RESOURCE}/mis-beneficiarios`)
   }
 }

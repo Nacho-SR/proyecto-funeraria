@@ -42,6 +42,20 @@ export class ClientesRepository {
       .sort((a, b) => this.fechaMillis(b.fecha_pago ?? b.fechaPago ?? b.fecha_creacion) - this.fechaMillis(a.fecha_pago ?? a.fechaPago ?? a.fecha_creacion))
   }
 
+  listarBeneficiariosPorContratos(contratos) {
+    return contratos
+      .flatMap(contrato =>
+        (contrato.beneficiarios ?? []).map(beneficiario =>
+          this.enriquecerBeneficiarioCliente(beneficiario, contrato)
+        )
+      )
+      .sort((a, b) => {
+        const contratoA = String(a.num_contrato ?? a.contratos_id ?? '')
+        const contratoB = String(b.num_contrato ?? b.contratos_id ?? '')
+        return contratoA.localeCompare(contratoB)
+      })
+  }
+
   async enriquecerContrato(contrato) {
     const [
       paquete,
@@ -145,6 +159,21 @@ export class ClientesRepository {
       contrato_estado: contrato.estado ?? 'activo',
       fecha_pago: pago.fecha_pago ?? pago.fechaPago ?? pago.fecha_creacion ?? null,
       estatus: pago.estatus ?? pago.estado ?? 'pendiente'
+    }
+  }
+
+  enriquecerBeneficiarioCliente(beneficiario, contrato) {
+    return {
+      ...beneficiario,
+      contratos_id: contrato.contratos_id,
+      num_contrato: contrato.num_contrato ?? null,
+      contrato_estado: contrato.estado ?? 'activo',
+      paquete: contrato.paquete
+        ? {
+            paquetes_id: contrato.paquete.paquetes_id,
+            nombre: contrato.paquete.nombre
+          }
+        : null
     }
   }
 
