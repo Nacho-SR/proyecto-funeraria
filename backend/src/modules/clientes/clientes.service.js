@@ -3,6 +3,10 @@ import { ClientesRepository } from './clientes.repo.js'
 import { FieldValue } from 'firebase-admin/firestore'
 import bcrypt from 'bcrypt'
 import { admin } from '../../config/firebase.js'
+import Stripe from 'stripe'
+import { env } from '../../config/env.js'
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
 export class ClientesService {
     constructor () {
@@ -142,5 +146,9 @@ export class ClientesService {
 
     const nuevoBeneficiario = await this.repo.crearNuevoBeneficiario(beneficiario)
     return { nuevoBeneficiario }
+  }
+
+  async generarEnlaceDePago(datosPago) {
+    console.log('Generando enlace de Stripe para contrato:', datosPago.contratoID)
   }
 }
