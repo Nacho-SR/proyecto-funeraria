@@ -76,6 +76,12 @@ export const nuevoCobradorSchema = z.object({
   cobrador: cobradorSchema
 })
 
+export const editarCobradorSchema = z.object({
+  nombre: z.string().min(3).optional(),
+  direccion: z.string().min(4).optional(),
+  telefono: z.string().min(7).optional()
+}).strict()
+
 export const createPaqueteAdicionalSchema = z.object({
   paquete_id: z.string().min(3).optional(),
   paquetes_id: z.string().min(3).optional(),

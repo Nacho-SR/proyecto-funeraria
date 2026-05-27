@@ -193,6 +193,22 @@ export class AdministrativosService {
     return { ...this.sanitizeUsuario(nuevoUsuario), ...infoCobrador }
   }
 
+  async obtenerCobrador(id) {
+    const cobrador = await this.repo.obtenerCobradorEdicion(id)
+    if (!cobrador) {
+      throw new ApiError(404, 'Cobrador no encontrado')
+    }
+    return cobrador
+  }
+
+  async actualizarCobrador(id, data) {
+    const cobrador = await this.repo.findCobradorById(id)
+    if (!cobrador) {
+      throw new ApiError(404, 'Cobrador no encontrado')
+    }
+    return await this.repo.actualizarCobrador(id, data)
+  }
+
   async crearNuevoContrato(data) {
     if (!data.clientes_id && !data.nuevo_cliente) {
       throw new ApiError(400, 'Debe proporcionar clientes_id o nuevo_cliente')

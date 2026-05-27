@@ -8,7 +8,8 @@ import { nuevoClienteSchema,
           createContratoSchema,
           nuevaRutaCobroSchema,
           revisarVisitaRutaSchema,
-          resolverSolicitudBeneficiarioSchema
+          resolverSolicitudBeneficiarioSchema,
+          editarCobradorSchema
         } from './asignaciones.schema.js'
 import { nuevoPagoSchema, validarPagoSchema } from '../pagos/pagos.schema.js'
 import { AdministrativosService } from './administrativos.service.js'
@@ -62,6 +63,17 @@ export const crearCobrador = async (req, res) => {
   const doc = nuevoCobradorSchema.parse(req.body)
   const created = await service.crearNuevoCobrador(doc)
   res.status(201).json(created)
+}
+
+export const obtenerCobrador = async (req, res) => {
+  const cobrador = await service.obtenerCobrador(req.params.id)
+  res.status(200).json(cobrador)
+}
+
+export const actualizarCobrador = async (req, res) => {
+  const doc = editarCobradorSchema.parse(req.body)
+  const cobrador = await service.actualizarCobrador(req.params.id, doc)
+  res.status(200).json(cobrador)
 }
 
 export const crearContrato = async (req, res) => {

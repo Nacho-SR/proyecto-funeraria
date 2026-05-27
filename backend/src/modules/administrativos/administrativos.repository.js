@@ -25,6 +25,12 @@ export class AdministrativosRepository {
     return { clientes_id: clienteDoc.id, ...clienteDoc.data() }
   }
 
+  async findCobradorById(id) {
+    const cobradorDoc = await db.collection("cobradores").doc(id).get()
+    if (!cobradorDoc.exists) return null
+    return { cobradores_id: cobradorDoc.id, ...cobradorDoc.data() }
+  }
+
   async findPaqueteById(id) {
     const paqueteDoc = await db.collection("paquetes").doc(id).get()
     if (!paqueteDoc.exists) return null
@@ -402,6 +408,48 @@ export class AdministrativosRepository {
     }));
 
     return resultado;
+  }
+
+  async obtenerCobradorEdicion(id) {
+    const cobrador = await this.findCobradorById(id)
+    if (!cobrador) return null
+
+    const usuario = cobrador.usuarios_id
+      ? await this.findUserById(cobrador.usuarios_id)
+      : null
+
+    return {
+      cobradorID: id,
+      cobrador_id: id,
+      nombre: usuario?.nombre ?? '',
+      direccion: cobrador.direccion ?? '',
+      telefono: cobrador.telefono ?? '',
+      email: usuario?.email ?? '',
+      usuarioID: cobrador.usuarios_id ?? null,
+      usuario_id: cobrador.usuarios_id ?? null,
+      activo: cobrador.activo !== false
+    }
+  }
+
+  async actualizarCobrador(id, data) {
+    const cobrador = await this.findCobradorById(id)
+    const updateCobrador = {
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+    }
+
+    if (data.direccion !== undefined) updateCobrador.direccion = data.direccion
+    if (data.telefono !== undefined) updateCobrador.telefono = data.telefono
+
+    await db.collection("cobradores").doc(id).update(updateCobrador)
+
+    if (data.nombre !== undefined && cobrador?.usuarios_id) {
+      await db.collection("usuarios").doc(cobrador.usuarios_id).update({
+        nombre: data.nombre,
+        fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+      })
+    }
+
+    return await this.obtenerCobradorEdicion(id)
   }
 
   async listarProductosActivos() {
