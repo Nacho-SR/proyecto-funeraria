@@ -42,6 +42,53 @@ export class ClientesRepository {
       .sort((a, b) => this.fechaMillis(b.fecha_pago ?? b.fechaPago ?? b.fecha_creacion) - this.fechaMillis(a.fecha_pago ?? a.fechaPago ?? a.fecha_creacion))
   }
 
+  async listarSolicitudesBeneficiariosByCliente(clienteId) {
+    const solicitudes = await db.collection('solicitudes_beneficiarios')
+      .where('cliente_id', '==', clienteId)
+      .get()
+
+    if (solicitudes.empty) return []
+
+    return solicitudes.docs
+      .map(doc => ({ solicitud_beneficiario_id: doc.id, ...doc.data() }))
+      .sort((a, b) => this.fechaMillis(b.fecha_creacion) - this.fechaMillis(a.fecha_creacion))
+  }
+
+  async crearSolicitudBeneficiario(data) {
+    const solicitud = db.collection('solicitudes_beneficiarios').doc()
+    await solicitud.set(data)
+    return { solicitud_beneficiario_id: solicitud.id, ...data }
+  }
+
+  async findSolicitudPendienteBeneficiario({ clienteId, contratoId, beneficiarioId }) {
+    let query = db.collection('solicitudes_beneficiarios')
+      .where('cliente_id', '==', clienteId)
+      .where('contratos_id', '==', contratoId)
+      .where('estado', '==', 'pendiente')
+
+    if (beneficiarioId) {
+      query = query.where('beneficiario_id', '==', beneficiarioId)
+    }
+
+    const solicitud = await query.limit(1).get()
+    if (solicitud.empty) return null
+    return { solicitud_beneficiario_id: solicitud.docs[0].id, ...solicitud.docs[0].data() }
+  }
+
+  listarBeneficiariosPorContratos(contratos) {
+    return contratos
+      .flatMap(contrato =>
+        (contrato.beneficiarios ?? []).map(beneficiario =>
+          this.enriquecerBeneficiarioCliente(beneficiario, contrato)
+        )
+      )
+      .sort((a, b) => {
+        const contratoA = String(a.num_contrato ?? a.contratos_id ?? '')
+        const contratoB = String(b.num_contrato ?? b.contratos_id ?? '')
+        return contratoA.localeCompare(contratoB)
+      })
+  }
+
   async enriquecerContrato(contrato) {
     const [
       paquete,
@@ -73,6 +120,18 @@ export class ClientesRepository {
     return { paquetes_id: paqueteDoc.id, ...paqueteDoc.data() }
   }
 
+  async findContratoById(contratoId) {
+    const contratoDoc = await db.collection('contratos').doc(contratoId).get()
+    if (!contratoDoc.exists) return null
+    return { contratos_id: contratoDoc.id, ...contratoDoc.data() }
+  }
+
+  async findBeneficiarioById(beneficiarioId) {
+    const beneficiarioDoc = await db.collection('beneficiarios').doc(beneficiarioId).get()
+    if (!beneficiarioDoc.exists) return null
+    return { beneficiario_id: beneficiarioDoc.id, ...beneficiarioDoc.data() }
+  }
+
   async findAdicionalById(adicionalId) {
     const adicionalDoc = await db.collection('adicionales').doc(adicionalId).get()
     if (!adicionalDoc.exists) return null
@@ -100,7 +159,9 @@ export class ClientesRepository {
 
   async listarBeneficiariosByContratoId(contratoId) {
     const snaps = await this.buscarPorContratoId('beneficiarios', contratoId)
-    return snaps.map(doc => ({ beneficiario_id: doc.id, ...doc.data() }))
+    return snaps
+      .map(doc => ({ beneficiario_id: doc.id, ...doc.data() }))
+      .filter(beneficiario => beneficiario.activo !== false)
   }
 
   async listarAdicionalesByContratoId(contratoId) {
@@ -145,6 +206,21 @@ export class ClientesRepository {
       contrato_estado: contrato.estado ?? 'activo',
       fecha_pago: pago.fecha_pago ?? pago.fechaPago ?? pago.fecha_creacion ?? null,
       estatus: pago.estatus ?? pago.estado ?? 'pendiente'
+    }
+  }
+
+  enriquecerBeneficiarioCliente(beneficiario, contrato) {
+    return {
+      ...beneficiario,
+      contratos_id: contrato.contratos_id,
+      num_contrato: contrato.num_contrato ?? null,
+      contrato_estado: contrato.estado ?? 'activo',
+      paquete: contrato.paquete
+        ? {
+            paquetes_id: contrato.paquete.paquetes_id,
+            nombre: contrato.paquete.nombre
+          }
+        : null
     }
   }
 

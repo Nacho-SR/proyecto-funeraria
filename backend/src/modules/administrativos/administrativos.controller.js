@@ -7,7 +7,8 @@ import { nuevoClienteSchema,
           createPaqueteAdicionalSchema,
           createContratoSchema,
           nuevaRutaCobroSchema,
-          revisarVisitaRutaSchema
+          revisarVisitaRutaSchema,
+          resolverSolicitudBeneficiarioSchema
         } from './asignaciones.schema.js'
 import { nuevoPagoSchema, validarPagoSchema } from '../pagos/pagos.schema.js'
 import { AdministrativosService } from './administrativos.service.js'
@@ -39,6 +40,11 @@ export const obtenerDetallesCobro = async (req, res) => {
 export const obtenerInfoContratos = async (req, res) => {
   const contratos = await service.obtenerInfoContratos()
   res.status(200).json({ contratos })
+}
+
+export const listarSolicitudesBeneficiarios = async (req, res) => {
+  const solicitudes = await service.listarSolicitudesBeneficiarios()
+  res.status(200).json({ solicitudes })
 }
 
 export const crearCliente = async (req, res) => {
@@ -122,6 +128,12 @@ export const revisarVisitaRuta = async (req, res) => {
 
 export const terminarValidacionRuta = async (req, res) => {
   const resultado = await service.terminarValidacionRuta(req.params.id, req.user.usuarios_id)
+  res.status(200).json(resultado)
+}
+
+export const resolverSolicitudBeneficiario = async (req, res) => {
+  const payload = resolverSolicitudBeneficiarioSchema.parse(req.body)
+  const resultado = await service.resolverSolicitudBeneficiario(req.params.id, payload, req.user.usuarios_id)
   res.status(200).json(resultado)
 }
 

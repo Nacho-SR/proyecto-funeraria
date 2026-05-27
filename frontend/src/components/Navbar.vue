@@ -71,6 +71,7 @@ onUnmounted(() => document.removeEventListener('click', clickFuera))
                 <li><router-link to="/lista-cobradores" @click="cerrarTodo">Cobradores</router-link></li>
                 <li><router-link to="/lista-contratos" @click="cerrarTodo">Contratos</router-link></li>
                 <li><router-link to="/lista-servicios" @click="cerrarTodo">Servicios</router-link></li>
+                <li><router-link to="/solicitudes-beneficiarios" @click="cerrarTodo">Solicitudes beneficiarios</router-link></li>
               </ul>
             </li>
             <li class="nav-item dropdown-parent">
@@ -118,6 +119,9 @@ onUnmounted(() => document.removeEventListener('click', clickFuera))
             </li>
             <li class="nav-item">
               <router-link class="nav-link text-white" to="/mis-pagos" @click="cerrarTodo">Mis pagos</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link class="nav-link text-white" to="/mis-beneficiarios" @click="cerrarTodo">Mis beneficiarios</router-link>
             </li>
           </template>
         </ul>
