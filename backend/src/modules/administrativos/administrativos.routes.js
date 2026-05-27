@@ -20,6 +20,7 @@ router.get('/rutas-cobro-validacion', asyncHandler(Ctrl.listarRutasCobroValidaci
 router.get('/rutas-cobro/:id/validacion', asyncHandler(Ctrl.obtenerRutaCobroValidacion))
 router.get('/detalles-cobro/:id', asyncHandler(Ctrl.obtenerDetallesCobro))
 router.get('/info-contratos',asyncHandler(Ctrl.obtenerInfoContratos))
+router.get('/solicitudes-beneficiarios/resumen', asyncHandler(Ctrl.resumenSolicitudesBeneficiarios))
 router.get('/solicitudes-beneficiarios', asyncHandler(Ctrl.listarSolicitudesBeneficiarios))
 router.get('/pagos', asyncHandler(Ctrl.listarPagos))
 router.get('/pagos/:id', asyncHandler(Ctrl.obtenerPago))

@@ -1,13 +1,15 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
+import { solicitudesBeneficiariosAdminService } from '@/services/solicitudesBeneficiariosAdmin.service'
 
 const { usuario, isAutenticado, esAdmin, esCobrador, esCliente, logout } = useAuth()
 const router = useRouter()
 
 const menuAbierto = ref(false)
 const perfilAbierto = ref(false)
+const solicitudesPendientes = ref(0)
 
 function toggleMenu() {
   menuAbierto.value = !menuAbierto.value
@@ -36,8 +38,30 @@ function clickFuera(e) {
   }
 }
 
-onMounted(() => document.addEventListener('click', clickFuera))
+async function cargarResumenSolicitudes() {
+  if (!isAutenticado.value || !esAdmin.value) return
+
+  try {
+    const { data } = await solicitudesBeneficiariosAdminService.resumen()
+    solicitudesPendientes.value = Number(data.resumen?.pendientes ?? 0)
+  } catch {
+    solicitudesPendientes.value = 0
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', clickFuera)
+  cargarResumenSolicitudes()
+})
 onUnmounted(() => document.removeEventListener('click', clickFuera))
+
+watch([isAutenticado, esAdmin], ([autenticado, admin]) => {
+  if (autenticado && admin) {
+    cargarResumenSolicitudes()
+  } else {
+    solicitudesPendientes.value = 0
+  }
+})
 </script>
 
 <template>
@@ -71,7 +95,12 @@ onUnmounted(() => document.removeEventListener('click', clickFuera))
                 <li><router-link to="/lista-cobradores" @click="cerrarTodo">Cobradores</router-link></li>
                 <li><router-link to="/lista-contratos" @click="cerrarTodo">Contratos</router-link></li>
                 <li><router-link to="/lista-servicios" @click="cerrarTodo">Servicios</router-link></li>
-                <li><router-link to="/solicitudes-beneficiarios" @click="cerrarTodo">Solicitudes beneficiarios</router-link></li>
+                <li>
+                  <router-link to="/solicitudes-beneficiarios" class="dropdown-link-with-badge" @click="cerrarTodo">
+                    <span>Solicitudes beneficiarios</span>
+                    <span v-if="solicitudesPendientes > 0" class="nav-badge">{{ solicitudesPendientes }}</span>
+                  </router-link>
+                </li>
               </ul>
             </li>
             <li class="nav-item dropdown-parent">
@@ -190,6 +219,25 @@ onUnmounted(() => document.removeEventListener('click', clickFuera))
 .nav-dropdown-menu li { list-style: none; }
 .nav-dropdown-menu a { display: block; padding: 8px 18px; color: var(--primary); text-decoration: none; font-size: 0.9rem; transition: background 0.15s; }
 .nav-dropdown-menu a:hover { background: var(--soft); }
+.dropdown-link-with-badge {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.nav-badge {
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  background: #ffc107;
+  color: #2f4156;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
 
 .btn-tres-puntos {
   display: flex; align-items: center; gap: 6px;

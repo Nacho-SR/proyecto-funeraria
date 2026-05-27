@@ -47,6 +47,11 @@ export const listarSolicitudesBeneficiarios = async (req, res) => {
   res.status(200).json({ solicitudes })
 }
 
+export const resumenSolicitudesBeneficiarios = async (req, res) => {
+  const resumen = await service.resumenSolicitudesBeneficiarios()
+  res.status(200).json({ resumen })
+}
+
 export const crearCliente = async (req, res) => {
   const doc = nuevoClienteSchema.parse(req.body)
   const created = await service.crearNuevoCliente(doc)
