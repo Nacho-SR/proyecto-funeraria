@@ -6,6 +6,12 @@ import { createBeneficiariosSchema } from '../beneficiarios/beneficiarios.schema
 import { updateBeneficiariosSchema } from '../beneficiarios/beneficiarios.schema.js'
 
 const serviceA = new AdministrativosService()
+const service = new ClientesService()
+
+export async function listarMisContratos (req, res) {
+  const contratos = await service.listarContratosActivos(req.user.usuarios_id)
+  res.status(200).json({ contratos })
+}
 
 export async function altaBeneficiario (req, res) {
   const { error, value } = createBeneficiariosSchema.safeParse(req.body)

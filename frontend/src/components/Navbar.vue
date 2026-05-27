@@ -113,6 +113,9 @@ onUnmounted(() => document.removeEventListener('click', clickFuera))
             <li class="nav-item">
               <router-link class="nav-link text-white" to="/dashboard-cliente" @click="cerrarTodo">Panel cliente</router-link>
             </li>
+            <li class="nav-item">
+              <router-link class="nav-link text-white" to="/mis-contratos" @click="cerrarTodo">Mis contratos</router-link>
+            </li>
           </template>
         </ul>
 

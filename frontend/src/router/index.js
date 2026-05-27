@@ -16,6 +16,7 @@ const routes = [
   { path: '/dashboard-cobrador', name: 'dashboard-cobrador', component: () => import('../views/CobradorDashboard.vue'), meta: { requiresAuth: true, rol: 'cobrador' } },
   { path: '/rutas-cobro', name: 'rutas-cobro', component: () => import('../views/RutasCobroView.vue'), meta: { requiresAuth: true, rol: 'cobrador' } },
   { path: '/dashboard-cliente', name: 'dashboard-cliente', component: () => import('../views/ClienteDashboard.vue'), meta: { requiresAuth: true, rol: 'cliente' } },
+  { path: '/mis-contratos', name: 'mis-contratos', component: () => import('../views/MisContratosView.vue'), meta: { requiresAuth: true, rol: 'cliente' } },
   { path: '/dashboard-usuario', name: 'dashboard-usuario', redirect: (to) => ({ name: dashboardPorRol(rolGuardado()), query: to.query }) },
   { path: '/dashboard', name: 'dashboard', component: () => import('../views/DashboardView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   // Perfil
