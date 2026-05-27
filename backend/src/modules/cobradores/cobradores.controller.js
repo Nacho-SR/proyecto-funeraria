@@ -6,6 +6,15 @@ import { ApiError } from '../../shared/utils/apiError.js'
 const service = new CobradoresService()
 const repo = new CobradoresRepository()
 
+export const listar = async (req, res) => {
+  if (req.user.rol !== 'admin') {
+    throw new ApiError(403, 'Solo administradores pueden consultar cobradores')
+  }
+
+  const cobradores = await repo.listar()
+  res.status(200).json(cobradores)
+}
+
 export const listarRutasCobro = async (req, res) => {
   const rutas = await service.listarRutasCobro(req.user.usuarios_id)
   res.status(200).json({ rutas })

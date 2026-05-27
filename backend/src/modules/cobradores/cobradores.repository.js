@@ -4,6 +4,31 @@ import { ApiError } from '../../shared/utils/apiError.js'
 const SERVER_TIMESTAMP = admin.firestore.FieldValue.serverTimestamp
 
 export class CobradoresRepository {
+  async listar() {
+    const snapshot = await db.collection('cobradores').get()
+
+    const cobradores = await Promise.all(snapshot.docs.map(async doc => {
+      const cobrador = { cobradorID: doc.id, cobrador_id: doc.id, ...doc.data() }
+      const usuarioDoc = cobrador.usuarios_id
+        ? await db.collection('usuarios').doc(cobrador.usuarios_id).get()
+        : null
+      const usuario = usuarioDoc?.exists ? usuarioDoc.data() : null
+
+      return {
+        ...cobrador,
+        nombre: usuario?.nombre ?? '',
+        apaterno: usuario?.apaterno ?? '',
+        amaterno: usuario?.amaterno ?? '',
+        email: usuario?.email ?? '',
+        direccion: cobrador.direccion ?? '',
+        telefono: cobrador.telefono ?? '',
+        activo: cobrador.activo !== false
+      }
+    }))
+
+    return cobradores
+  }
+
   async findCobradorByUsuarioId(usuariosId) {
     const snapshot = await db.collection('cobradores')
       .where('usuarios_id', '==', usuariosId)

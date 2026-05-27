@@ -6,6 +6,7 @@ import * as Ctrl from './cobradores.controller.js'
 
 const router = Router()
 
+router.get('/', authenticate, requireRole('admin'), asyncHandler(Ctrl.listar))
 router.patch('/:id/baja', authenticate, requireRole('admin'), asyncHandler(Ctrl.darDeBaja))
 
 router.use(authenticate)
