@@ -8,13 +8,11 @@ export const env = {
   FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
   FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY,
   CORS_ORIGIN: process.env.CORS_ORIGIN || '*',
-  MASTER_ADMIN_KEY: process.env.MASTER_ADMIN_KEY,
 }
 
 const required = [
   'PORT', 'JWT_SECRET', 'JWT_EXPIRES_IN', 'FIREBASE_PROJECT_ID',
   'FIREBASE_CLIENT_EMAIL', 'FIREBASE_PRIVATE_KEY', 'CORS_ORIGIN',
-  'MASTER_ADMIN_KEY',
 ]
 
 for (const key of required) {

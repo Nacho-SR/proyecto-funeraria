@@ -1,11 +1,34 @@
+import { ApiError } from '../../shared/utils/apiError.js'
+import { ClientesRepository } from './clientes.repo.js'
+import { FieldValue } from 'firebase-admin/firestore'
 import bcrypt from 'bcrypt'
 import { admin } from '../../config/firebase.js'
-import { ApiError } from '../../shared/utils/apiError.js'
-import { ClientesRepository } from './clientes.repository.js'
 
 export class ClientesService {
-  constructor () {
-    this.repo = new ClientesRepository()
+    constructor () {
+        this.repo = new ClientesRepository()
+    }
+
+  async listarContratosActivos(usuarioId) {
+    const cliente = await this.repo.findClienteByUsuarioId(usuarioId)
+    if (!cliente) {
+      throw new ApiError(404, 'No se encontro el perfil de cliente asociado al usuario')
+    }
+
+    const contratos = await this.repo.listarContratosPorCliente(cliente.clientes_id)
+    return contratos.filter(contrato =>
+      contrato.activo !== false &&
+      (contrato.estado ?? 'activo') === 'activo'
+    )
+  }
+
+  async listarMisPagos(usuarioId) {
+    const cliente = await this.repo.findClienteByUsuarioId(usuarioId)
+    if (!cliente) {
+      throw new ApiError(404, 'No se encontro el perfil de cliente asociado al usuario')
+    }
+
+    return await this.repo.listarPagosPorCliente(cliente.clientes_id)
   }
 
   async crearNuevoBeneficiario(data) {

@@ -1,11 +1,22 @@
-/*
- Controlador para la gestión de beneficiarios para los clientes.
-*/
+import { nuevoPagoSchema } from '../pagos/pagos.schema.js';
+import { ClientesService } from './clientes.service.js';
+import { ApiError } from '../../shared/utils/apiError.js';
+import { AdministrativosService } from '../administrativos/administrativos.service.js';
 import { createBeneficiariosSchema } from '../beneficiarios/beneficiarios.schema.js'
 import { updateBeneficiariosSchema } from '../beneficiarios/beneficiarios.schema.js'
-import { ApiError } from '../../shared/utils/apiError.js'
 
-const service = new AdministrativosService()
+const serviceA = new AdministrativosService()
+const service = new ClientesService()
+
+export async function listarMisContratos (req, res) {
+  const contratos = await service.listarContratosActivos(req.user.usuarios_id)
+  res.status(200).json({ contratos })
+}
+
+export async function listarMisPagos (req, res) {
+  const pagos = await service.listarMisPagos(req.user.usuarios_id)
+  res.status(200).json({ pagos })
+}
 
 export async function altaBeneficiario (req, res) {
   const { error, value } = createBeneficiariosSchema.safeParse(req.body)

@@ -6,7 +6,7 @@ const { usuario, logout } = useAuth()
 
 const form = reactive({
   nombre: usuario.value?.nombre || '',
-  correo: usuario.value?.correo || '',
+  correo: usuario.value?.email || '',
   passwordActual: '',
   passwordNuevo: '',
   confirmar: '',

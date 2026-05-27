@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 
-const { usuario, isAutenticado, esAdmin, logout } = useAuth()
+const { usuario, isAutenticado, esAdmin, esCobrador, esCliente, logout } = useAuth()
 const router = useRouter()
 
 const menuAbierto = ref(false)
@@ -35,6 +35,7 @@ function clickFuera(e) {
     cerrarTodo()
   }
 }
+
 onMounted(() => document.addEventListener('click', clickFuera))
 onUnmounted(() => document.removeEventListener('click', clickFuera))
 </script>
@@ -43,7 +44,7 @@ onUnmounted(() => document.removeEventListener('click', clickFuera))
   <nav class="navbar navbar-expand-lg navbar-custom shadow-sm">
     <div class="container">
       <router-link class="navbar-brand fw-bold text-white" to="/" @click="cerrarTodo">
-        ⚱ Funeraria
+        Funeraria
       </router-link>
 
       <button class="navbar-toggler" type="button" @click="toggleMenu">
@@ -56,45 +57,78 @@ onUnmounted(() => document.removeEventListener('click', clickFuera))
             <router-link class="nav-link text-white" to="/" @click="cerrarTodo">Inicio</router-link>
           </li>
 
-          <!-- Admin -->
           <template v-if="isAutenticado && esAdmin">
             <li class="nav-item">
               <router-link class="nav-link text-white" to="/dashboard-admin" @click="cerrarTodo">Panel admin</router-link>
             </li>
+            <li class="nav-item">
+              <router-link class="nav-link text-white" to="/dashboard" @click="cerrarTodo">Resumen</router-link>
+            </li>
             <li class="nav-item dropdown-parent">
-              <span class="nav-link text-white nav-dropdown-toggle">Gestión ▾</span>
+              <span class="nav-link text-white nav-dropdown-toggle">Gestion</span>
               <ul class="nav-dropdown-menu">
-                <li><router-link to="/baja-cliente" @click="cerrarTodo">Clientes</router-link></li>
-                <li><router-link to="/baja-cobrador" @click="cerrarTodo">Cobradores</router-link></li>
-                <li><router-link to="/baja-contrato" @click="cerrarTodo">Contratos</router-link></li>
-                <li><router-link to="/baja-servicio" @click="cerrarTodo">Servicios</router-link></li>
-                <li class="divider"></li>
-                <li><router-link to="/alta-cliente" @click="cerrarTodo">Alta Cliente</router-link></li>
-                <li><router-link to="/alta-paquete" @click="cerrarTodo">Alta Paquete</router-link></li>
+                <li><router-link to="/lista-clientes" @click="cerrarTodo">Clientes</router-link></li>
+                <li><router-link to="/lista-cobradores" @click="cerrarTodo">Cobradores</router-link></li>
+                <li><router-link to="/lista-contratos" @click="cerrarTodo">Contratos</router-link></li>
+                <li><router-link to="/lista-servicios" @click="cerrarTodo">Servicios</router-link></li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown-parent">
+              <span class="nav-link text-white nav-dropdown-toggle">Altas</span>
+              <ul class="nav-dropdown-menu">
+                <li><router-link to="/register" @click="cerrarTodo">Crear usuario</router-link></li>
+                <li><router-link to="/alta-cliente" @click="cerrarTodo">Alta cliente</router-link></li>
+                <li><router-link to="/alta-cobrador" @click="cerrarTodo">Alta cobrador</router-link></li>
+                <li><router-link to="/alta-contrato" @click="cerrarTodo">Alta contrato</router-link></li>
+                <li><router-link to="/alta-paquete" @click="cerrarTodo">Alta paquete</router-link></li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown-parent">
+              <span class="nav-link text-white nav-dropdown-toggle">Pagos</span>
+              <ul class="nav-dropdown-menu">
+                <li><router-link to="/modulo-pagos" @click="cerrarTodo">Modulo de pagos</router-link></li>
+                <li><router-link to="/captura-pago" @click="cerrarTodo">Captura de pago</router-link></li>
+                <li><router-link to="/validacion-cobros" @click="cerrarTodo">Validacion de cobros</router-link></li>
+                <li><router-link to="/lista-pagos" @click="cerrarTodo">Lista de pagos</router-link></li>
+              </ul>
+            </li>
+            <li class="nav-item dropdown-parent">
+              <span class="nav-link text-white nav-dropdown-toggle">Rutas</span>
+              <ul class="nav-dropdown-menu">
+                <li><router-link to="/asignar-ruta-cobro" @click="cerrarTodo">Nueva ruta de cobro</router-link></li>
               </ul>
             </li>
           </template>
 
-          <!-- Cliente / Cobrador: solo ven sus servicios -->
-          <template v-else-if="isAutenticado && !esAdmin">
+          <template v-else-if="isAutenticado && esCobrador">
             <li class="nav-item">
-              <router-link class="nav-link text-white" to="/dashboard-usuario" @click="cerrarTodo">Servicios</router-link>
+              <router-link class="nav-link text-white" to="/dashboard-cobrador" @click="cerrarTodo">Panel cobrador</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link class="nav-link text-white" to="/rutas-cobro" @click="cerrarTodo">Rutas de cobro</router-link>
+            </li>
+          </template>
+
+          <template v-else-if="isAutenticado && esCliente">
+            <li class="nav-item">
+              <router-link class="nav-link text-white" to="/dashboard-cliente" @click="cerrarTodo">Panel cliente</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link class="nav-link text-white" to="/mis-contratos" @click="cerrarTodo">Mis contratos</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link class="nav-link text-white" to="/mis-pagos" @click="cerrarTodo">Mis pagos</router-link>
             </li>
           </template>
         </ul>
 
         <ul class="navbar-nav ms-auto align-items-center">
-          <!-- Sin sesión -->
           <template v-if="!isAutenticado">
             <li class="nav-item">
-              <router-link class="nav-link text-white" to="/login" @click="cerrarTodo">Iniciar Sesión</router-link>
-            </li>
-            <li class="nav-item">
-              <router-link class="nav-link text-white" to="/register" @click="cerrarTodo">Registrarse</router-link>
+              <router-link class="nav-link text-white" to="/login" @click="cerrarTodo">Iniciar sesion</router-link>
             </li>
           </template>
 
-          <!-- Con sesión: menú perfil -->
           <li v-else class="nav-item navbar-perfil position-relative">
             <button class="btn-tres-puntos" @click.stop="togglePerfil" title="Opciones de usuario">
               <div class="avatar-mini">{{ (usuario?.nombre?.[0] || 'U').toUpperCase() }}</div>
@@ -105,15 +139,14 @@ onUnmounted(() => document.removeEventListener('click', clickFuera))
               <div class="perfil-dropdown__header">
                 <div class="perfil-dropdown__avatar">{{ (usuario?.nombre?.[0] || 'U').toUpperCase() }}</div>
                 <div>
-                  <p class="fw-bold mb-0 text-dark">{{ usuario?.nombre }}</p>
-                  <small class="text-muted">{{ usuario?.correo }}</small><br/>
+                  <p class="fw-bold mb-0 text-dark">{{ usuario?.nombre || 'Usuario' }}</p>
+                  <small class="text-muted">{{ usuario?.email }}</small><br/>
                   <span class="badge-rol-small">{{ usuario?.rol }}</span>
                 </div>
               </div>
               <hr class="my-2"/>
-              <router-link to="/perfil" class="perfil-dropdown__item" @click="cerrarTodo">&#9998; Editar perfil</router-link>
-              <router-link v-if="esAdmin" to="/dashboard-admin" class="perfil-dropdown__item" @click="cerrarTodo">&#128295; Panel admin</router-link>
-              <button class="perfil-dropdown__item perfil-dropdown__item--danger" @click="cerrarSesion">&#128682; Cerrar sesión</button>
+              <router-link to="/perfil" class="perfil-dropdown__item" @click="cerrarTodo">Editar perfil</router-link>
+              <button class="perfil-dropdown__item perfil-dropdown__item--danger" @click="cerrarSesion">Cerrar sesion</button>
             </div>
           </li>
         </ul>
@@ -144,16 +177,15 @@ onUnmounted(() => document.removeEventListener('click', clickFuera))
   top: 100%;
   left: 0;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 8px 0;
-  min-width: 180px;
+  min-width: 190px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.15);
   z-index: 200;
 }
 .nav-dropdown-menu li { list-style: none; }
 .nav-dropdown-menu a { display: block; padding: 8px 18px; color: var(--primary); text-decoration: none; font-size: 0.9rem; transition: background 0.15s; }
 .nav-dropdown-menu a:hover { background: var(--soft); }
-.nav-dropdown-menu .divider { height: 1px; background: #eee; margin: 4px 0; }
 
 .btn-tres-puntos {
   display: flex; align-items: center; gap: 6px;
@@ -172,11 +204,9 @@ onUnmounted(() => document.removeEventListener('click', clickFuera))
 
 .perfil-dropdown {
   position: absolute; right: 0; top: calc(100% + 10px);
-  background: #fff; border-radius: 14px; padding: 16px;
+  background: #fff; border-radius: 8px; padding: 16px;
   min-width: 230px; z-index: 300;
-  animation: popIn 0.15s ease;
 }
-@keyframes popIn { from { opacity: 0; transform: scale(0.95) translateY(-4px) } to { opacity: 1; transform: none } }
 .perfil-dropdown__header { display: flex; gap: 12px; align-items: center; }
 .perfil-dropdown__avatar {
   width: 44px; height: 44px; border-radius: 50%;

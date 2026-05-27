@@ -1,53 +1,86 @@
 <script setup>
 import { useAuth } from '@/composables/useAuth'
+
 const { usuario } = useAuth()
 
-const tarjetas = [
-  { titulo: 'Clientes', icono: '👥', ruta: '/lista-clientes', desc: 'Ver y gestionar clientes', color: '#2F4156' },
-  { titulo: 'Cobradores', icono: '💼', ruta: '/lista-cobradores', desc: 'Administrar cobradores', color: '#567C8D' },
-  { titulo: 'Contratos', icono: '📄', ruta: '/lista-contratos', desc: 'Gestionar contratos', color: '#2F4156' },
-  { titulo: 'Servicios', icono: '⚙️', ruta: '/lista-servicios', desc: 'Ver servicios y paquetes', color: '#567C8D' },
-  { titulo: 'Pagos', icono: '💰', ruta: '/lista-pagos', desc: 'Visualizar pagos', color: '#2F4156' },
-  { titulo: 'Alta Cliente', icono: '➕', ruta: '/alta-cliente', desc: 'Registrar nuevo cliente', color: '#567C8D' },
-  { titulo: 'Alta Cobrador', icono: '🧑‍💼', ruta: '/alta-cobrador', desc: 'Registrar nuevo cobrador', color: '#2F4156' },
-  { titulo: 'Alta Paquete', icono: '📦', ruta: '/alta-paquete', desc: 'Registrar nuevo paquete', color: '#567C8D' },
-  { titulo: 'Alta Contrato', icono: '📝', ruta: '/alta-contrato', desc: 'Registrar nuevo contrato', color: '#2F4156' },
+const secciones = [
+  {
+    titulo: 'Gestion',
+    items: [
+      { titulo: 'Clientes', ruta: '/lista-clientes', desc: 'Consulta y administra clientes.' },
+      { titulo: 'Cobradores', ruta: '/lista-cobradores', desc: 'Consulta y administra cobradores.' },
+      { titulo: 'Contratos', ruta: '/lista-contratos', desc: 'Consulta contratos activos y estado de pago.' },
+      { titulo: 'Servicios', ruta: '/lista-servicios', desc: 'Consulta paquetes y servicios.' },
+    ],
+  },
+  {
+    titulo: 'Altas',
+    items: [
+      { titulo: 'Crear usuario', ruta: '/register', desc: 'Crea usuarios cliente o cobrador.' },
+      { titulo: 'Alta cliente', ruta: '/alta-cliente', desc: 'Registra un cliente completo.' },
+      { titulo: 'Alta cobrador', ruta: '/alta-cobrador', desc: 'Registra un nuevo cobrador.' },
+      { titulo: 'Alta contrato', ruta: '/alta-contrato', desc: 'Crea contratos para clientes.' },
+      { titulo: 'Alta paquete', ruta: '/alta-paquete', desc: 'Registra paquetes del servicio.' },
+    ],
+  },
+  {
+    titulo: 'Pagos',
+    items: [
+      { titulo: 'Modulo de pagos', ruta: '/modulo-pagos', desc: 'Revisa pagos y filtros generales.' },
+      { titulo: 'Captura de pago', ruta: '/captura-pago', desc: 'Registra pagos validados por admin.' },
+      { titulo: 'Validacion de cobros', ruta: '/validacion-cobros', desc: 'Valida pagos capturados por cobradores.' },
+      { titulo: 'Dashboard general', ruta: '/dashboard', desc: 'Consulta indicadores del sistema.' },
+    ],
+  },
+  {
+    titulo: 'Rutas',
+    items: [
+      { titulo: 'Nueva ruta de cobro', ruta: '/asignar-ruta-cobro', desc: 'Asigna contratos a un cobrador y ordena visitas.' },
+    ],
+  },
 ]
 </script>
 
 <template>
   <div class="container py-4">
     <div class="mb-4">
-      <h2 class="fw-bold" style="color: var(--primary)">Panel de administración</h2>
-      <p class="text-muted">Bienvenido, <strong>{{ usuario?.nombre || 'Administrador' }}</strong></p>
+      <h2 class="fw-bold" style="color: var(--primary)">Panel de administracion</h2>
+      <p class="text-muted mb-0">Bienvenido, <strong>{{ usuario?.nombre || 'Administrador' }}</strong></p>
     </div>
 
-    <div class="row g-4">
-      <div v-for="t in tarjetas" :key="t.titulo" class="col-sm-6 col-lg-4">
-        <router-link :to="t.ruta" class="text-decoration-none">
-          <div class="dash-card shadow-sm">
-            <div class="dash-card__icono" :style="{ background: t.color }">{{ t.icono }}</div>
-            <div>
-              <h6 class="fw-bold mb-1">{{ t.titulo }}</h6>
-              <p class="text-muted small mb-0">{{ t.desc }}</p>
+    <section v-for="seccion in secciones" :key="seccion.titulo" class="mb-4">
+      <h5 class="section-title">{{ seccion.titulo }}</h5>
+      <div class="row g-3">
+        <div v-for="item in seccion.items" :key="item.ruta" class="col-sm-6 col-lg-3">
+          <router-link :to="item.ruta" class="text-decoration-none">
+            <div class="dash-card">
+              <h6 class="fw-bold mb-2">{{ item.titulo }}</h6>
+              <p class="text-muted small mb-0">{{ item.desc }}</p>
             </div>
-          </div>
-        </router-link>
+          </router-link>
+        </div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
 <style scoped>
-.dash-card {
-  background: #fff; border-radius: 14px; padding: 20px;
-  display: flex; align-items: center; gap: 16px;
-  transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;
+.section-title {
+  color: var(--primary);
+  font-weight: 700;
+  margin-bottom: 12px;
 }
-.dash-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(47,65,86,0.15) !important; }
-.dash-card__icono {
-  width: 52px; height: 52px; border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.5rem; flex-shrink: 0;
+.dash-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 18px;
+  min-height: 122px;
+  border-left: 4px solid var(--secondary);
+  box-shadow: 0 2px 12px rgba(47,65,86,0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.dash-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(47,65,86,0.14);
 }
 </style>

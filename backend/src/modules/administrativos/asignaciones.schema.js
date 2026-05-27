@@ -77,8 +77,10 @@ export const nuevoCobradorSchema = z.object({
 })
 
 export const createPaqueteAdicionalSchema = z.object({
+  paquete_id: z.string().min(3).optional(),
   paquetes_id: z.string().min(3).optional(),
   paquete: paqueteSchema.optional(),
+  adicional_id: z.string().min(3).optional(),
   adicionales_id: z.string().min(3).optional(),
   adicional: adicionalSchema.optional(),
   promo: z.boolean().default(false).optional(),
@@ -118,3 +120,7 @@ export const updateAsignacionCobroSchema = z.object({
     contratoID: z.string(),
   })).optional()
 }).strict()
+
+export const revisarVisitaRutaSchema = z.object({
+  estatus_pago: z.enum(['validado', 'cancelado']).optional()
+})
