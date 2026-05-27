@@ -27,7 +27,7 @@ const { isAutenticado } = useAuth()
         </div>
         <div class="hero__stat-div"></div>
         <div class="hero__stat">
-          <span class="hero__stat-num">+20</span>
+          <span class="hero__stat-num">+</span>
           <span class="hero__stat-label">Años de experiencia</span>
         </div>
         <div class="hero__stat-div"></div>
