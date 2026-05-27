@@ -12,7 +12,7 @@ const secciones = [
   {
     titulo: 'Pagos',
     texto: 'Historial y pagos registrados.',
-    ruta: '/mis-contratos'
+    ruta: '/mis-pagos'
   },
   {
     titulo: 'Beneficiarios',

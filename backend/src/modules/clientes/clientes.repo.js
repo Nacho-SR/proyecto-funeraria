@@ -25,6 +25,23 @@ export class ClientesRepository {
     return resultado.sort((a, b) => this.fechaMillis(b.fecha_inicio) - this.fechaMillis(a.fecha_inicio))
   }
 
+  async listarPagosPorCliente(clienteId) {
+    const contratos = await this.listarContratosPorCliente(clienteId)
+    const pagosPorContrato = await Promise.all(
+      contratos.map(async contrato => {
+        const snaps = await this.buscarPorContratoId('pagos', contrato.contratos_id)
+        return snaps.map(doc => this.enriquecerPagoCliente(
+          { pagos_id: doc.id, ...doc.data() },
+          contrato
+        ))
+      })
+    )
+
+    return pagosPorContrato
+      .flat()
+      .sort((a, b) => this.fechaMillis(b.fecha_pago ?? b.fechaPago ?? b.fecha_creacion) - this.fechaMillis(a.fecha_pago ?? a.fechaPago ?? a.fecha_creacion))
+  }
+
   async enriquecerContrato(contrato) {
     const [
       paquete,
@@ -110,6 +127,24 @@ export class ClientesRepository {
       total_registrados: pagos.length,
       por_validar: porValidar.length,
       monto_por_validar: porValidar.reduce((total, pago) => total + Number(pago.monto ?? 0), 0)
+    }
+  }
+
+  enriquecerPagoCliente(pago, contrato) {
+    return {
+      ...pago,
+      contratos_id: pago.contratos_id ?? pago.contrato_id ?? contrato.contratos_id,
+      contrato_id: pago.contrato_id ?? pago.contratos_id ?? contrato.contratos_id,
+      num_contrato: contrato.num_contrato ?? null,
+      paquete: contrato.paquete
+        ? {
+            paquetes_id: contrato.paquete.paquetes_id,
+            nombre: contrato.paquete.nombre
+          }
+        : null,
+      contrato_estado: contrato.estado ?? 'activo',
+      fecha_pago: pago.fecha_pago ?? pago.fechaPago ?? pago.fecha_creacion ?? null,
+      estatus: pago.estatus ?? pago.estado ?? 'pendiente'
     }
   }
 

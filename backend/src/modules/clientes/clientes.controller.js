@@ -13,6 +13,11 @@ export async function listarMisContratos (req, res) {
   res.status(200).json({ contratos })
 }
 
+export async function listarMisPagos (req, res) {
+  const pagos = await service.listarMisPagos(req.user.usuarios_id)
+  res.status(200).json({ pagos })
+}
+
 export async function altaBeneficiario (req, res) {
   const { error, value } = createBeneficiariosSchema.safeParse(req.body)
   if (error) {

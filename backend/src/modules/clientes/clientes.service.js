@@ -22,6 +22,15 @@ export class ClientesService {
     )
   }
 
+  async listarMisPagos(usuarioId) {
+    const cliente = await this.repo.findClienteByUsuarioId(usuarioId)
+    if (!cliente) {
+      throw new ApiError(404, 'No se encontro el perfil de cliente asociado al usuario')
+    }
+
+    return await this.repo.listarPagosPorCliente(cliente.clientes_id)
+  }
+
   async crearNuevoBeneficiario(data) {
     console.log('Creando nuevo beneficiario con data:', data)
     console.log('Validando si el beneficiario ya existe con nombre:', data.beneficiario.nombre)

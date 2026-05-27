@@ -12,6 +12,7 @@ router.use(authenticate)
 router.use(requireRole('cliente'))
 
 router.get('/mis-contratos', asyncHandler(ctrl.listarMisContratos))
+router.get('/mis-pagos', asyncHandler(ctrl.listarMisPagos))
 router.post('/alta-beneficiario', asyncHandler(Ctrl.altaBeneficiario))
 router.post('/actualizar-beneficiario', asyncHandler(Ctrl.actualizarBeneficiario))
 
