@@ -26,7 +26,7 @@ async function cargarTodo() {
     const [resClientes, resCobradores, resContratos, resPagos] = await Promise.allSettled([
       api.get('/administrativos/clientes-activos'),
       api.get('/administrativos/cobradores-activos'),
-      api.get('/administrativos/contratos'),
+      api.get('/administrativos/info-contratos'),
       api.get('/administrativos/pagos'),
     ])
 
@@ -52,7 +52,8 @@ async function cargarTodo() {
 const totalClientes = computed(() => clientes.value.length)
 const totalCobradores = computed(() => cobradores.value.length)
 const totalContratos = computed(() => contratos.value.length)
-const contratosActivos = computed(() => contratos.value.filter(c => c.estado === 'activo').length)
+const estadoContrato = (contrato) => contrato.estado ?? (contrato.activo === false ? 'inactivo' : 'activo')
+const contratosActivos = computed(() => contratos.value.filter(c => estadoContrato(c) === 'activo').length)
 
 const totalCobrado = computed(() =>
   pagos.value
@@ -91,7 +92,8 @@ const chartPagosPorEstatus = computed(() => {
 const chartContratosPorEstado = computed(() => {
   const counts = { activo: 0, pagado: 0, cancelado: 0, suspendido: 0 }
   contratos.value.forEach(c => {
-    if (counts[c.estado] !== undefined) counts[c.estado]++
+    const estado = estadoContrato(c)
+    if (counts[estado] !== undefined) counts[estado]++
   })
   return {
     labels: ['Activos', 'Pagados', 'Cancelados', 'Suspendidos'],

@@ -254,18 +254,15 @@ export class AdministrativosService {
   
 
   async crearPaqueteAdicional(data) {
-    data.paquete_id = data.paquete_id ?? data.paquetes_id
-    data.adicional_id = data.adicional_id ?? data.adicionales_id
+    const paquete_id = data.paquete_id ?? data.paquetes_id
+    const adicional_id = data.adicional_id ?? data.adicionales_id
 
-    if ((data.hasOwnProperty('paquete') == false && data.hasOwnProperty('adicional') == false) && (data.hasOwnProperty('paquete_id') == false && data.hasOwnProperty('adicional_id') == false )) {
+    if (!data.paquete && !data.adicional && !paquete_id && !adicional_id) {
       throw new ApiError(400, 'Datos de paquete y/o adicional son requeridos')
     }
 
-    if(data.hasOwnProperty('paquete_id') && data.hasOwnProperty('adicional_id')) {
-      const { paquete_id, adicional_id } = data
-
+    if(paquete_id && adicional_id) {
       const paqueteSnap = await this.repo.findPaqueteById(paquete_id)
-      console.log('paqueteSnap:', paqueteSnap)
       if (!paqueteSnap) {
         throw new ApiError(404, 'Paquete no encontrado, no se puede crear promo')
       }
