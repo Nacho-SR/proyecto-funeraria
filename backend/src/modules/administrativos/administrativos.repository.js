@@ -165,6 +165,28 @@ export class AdministrativosRepository {
     return solicitudes.sort((a, b) => this.fechaMillis(b.fecha_creacion) - this.fechaMillis(a.fecha_creacion))
   }
 
+  async resumenSolicitudesBeneficiarios() {
+    const pendientesSnap = await db.collection('solicitudes_beneficiarios')
+      .where('estado', '==', 'pendiente')
+      .get()
+
+    const porTipo = {
+      crear: 0,
+      actualizar: 0,
+      eliminar: 0
+    }
+
+    pendientesSnap.docs.forEach(doc => {
+      const tipo = doc.data().tipo
+      if (porTipo[tipo] !== undefined) porTipo[tipo]++
+    })
+
+    return {
+      pendientes: pendientesSnap.size,
+      por_tipo: porTipo
+    }
+  }
+
   async resolverSolicitudBeneficiario({ solicitudId, accion, comentarioAdmin, usuarioId }) {
     const solicitudRef = db.collection('solicitudes_beneficiarios').doc(solicitudId)
     let beneficiarioCreadoId = null

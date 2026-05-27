@@ -5,6 +5,11 @@ const { usuario } = useAuth()
 
 const secciones = [
   {
+    titulo: 'Productos',
+    texto: 'Paquetes, adicionales y promociones activas.',
+    ruta: '/productos-promociones'
+  },
+  {
     titulo: 'Mis contratos',
     texto: 'Contratos activos, saldos y detalles.',
     ruta: '/mis-contratos'
@@ -30,7 +35,7 @@ const secciones = [
     </div>
 
     <div class="row g-4">
-      <div v-for="seccion in secciones" :key="seccion.titulo" class="col-md-4">
+      <div v-for="seccion in secciones" :key="seccion.titulo" class="col-md-3">
         <router-link :to="seccion.ruta" class="dash-card shadow-sm">
           <h6 class="fw-bold mb-2">{{ seccion.titulo }}</h6>
           <p class="text-muted small mb-0">{{ seccion.texto }}</p>

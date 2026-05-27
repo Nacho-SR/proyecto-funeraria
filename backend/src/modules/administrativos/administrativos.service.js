@@ -87,6 +87,10 @@ export class AdministrativosService {
     return await this.repo.listarSolicitudesBeneficiarios()
   }
 
+  async resumenSolicitudesBeneficiarios() {
+    return await this.repo.resumenSolicitudesBeneficiarios()
+  }
+
   async resolverSolicitudBeneficiario(solicitudId, data, usuarioId) {
     return await this.repo.resolverSolicitudBeneficiario({
       solicitudId,

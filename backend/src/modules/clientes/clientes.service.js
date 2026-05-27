@@ -46,6 +46,10 @@ export class ClientesService {
     return this.repo.listarBeneficiariosPorContratos(contratosActivos)
   }
 
+  async listarProductosActivos() {
+    return await this.repo.listarProductosActivos()
+  }
+
   async listarMisSolicitudesBeneficiarios(usuarioId) {
     const cliente = await this.repo.findClienteByUsuarioId(usuarioId)
     if (!cliente) {

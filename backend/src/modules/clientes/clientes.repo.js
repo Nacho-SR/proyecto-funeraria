@@ -42,6 +42,57 @@ export class ClientesRepository {
       .sort((a, b) => this.fechaMillis(b.fecha_pago ?? b.fechaPago ?? b.fecha_creacion) - this.fechaMillis(a.fecha_pago ?? a.fechaPago ?? a.fecha_creacion))
   }
 
+  async listarProductosActivos() {
+    const [paquetesSnap, adicionalesSnap, promocionesSnap] = await Promise.all([
+      db.collection('paquetes').where('activo', '==', true).get(),
+      db.collection('adicionales').where('activo', '==', true).get(),
+      db.collection('paquete_adicionales').where('activo', '==', true).get()
+    ])
+
+    const paquetes = paquetesSnap.docs.map(doc => ({ paquete_id: doc.id, paquetes_id: doc.id, ...doc.data() }))
+    const adicionales = adicionalesSnap.docs.map(doc => ({ adicional_id: doc.id, adicionales_id: doc.id, ...doc.data() }))
+    const paquetesMap = new Map(paquetes.map(paquete => [paquete.paquete_id, paquete]))
+    const adicionalesMap = new Map(adicionales.map(adicional => [adicional.adicional_id, adicional]))
+
+    const promociones = promocionesSnap.docs
+      .map(doc => {
+        const promo = { promo_id: doc.id, paquete_adicionales_id: doc.id, ...doc.data() }
+        const paqueteId = promo.paquete_id ?? promo.paquetes_id
+        const adicionalId = promo.adicional_id ?? promo.adicionales_id
+        const paquete = paquetesMap.get(paqueteId)
+        const adicional = adicionalesMap.get(adicionalId)
+
+        if (!paquete || !adicional) return null
+
+        const precioOriginal = Number(adicional.precio ?? 0)
+        const precioEspecial = Number(promo.precio_especial ?? precioOriginal)
+
+        return {
+          ...promo,
+          paquete_id: paqueteId,
+          adicional_id: adicionalId,
+          paquete: {
+            paquete_id: paquete.paquete_id,
+            nombre: paquete.nombre,
+            descripcion: paquete.descripcion,
+            precio_base: paquete.precio_base
+          },
+          adicional: {
+            adicional_id: adicional.adicional_id,
+            nombre: adicional.nombre,
+            descripcion: adicional.descripcion,
+            precio: adicional.precio
+          },
+          precio_original: precioOriginal,
+          precio_especial: precioEspecial,
+          ahorro: Math.max(precioOriginal - precioEspecial, 0)
+        }
+      })
+      .filter(Boolean)
+
+    return { paquetes, adicionales, promociones }
+  }
+
   async listarSolicitudesBeneficiariosByCliente(clienteId) {
     const solicitudes = await db.collection('solicitudes_beneficiarios')
       .where('cliente_id', '==', clienteId)

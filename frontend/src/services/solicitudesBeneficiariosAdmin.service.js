@@ -3,6 +3,10 @@ import api from './api'
 const RESOURCE = '/administrativos/solicitudes-beneficiarios'
 
 export const solicitudesBeneficiariosAdminService = {
+  resumen() {
+    return api.get(`${RESOURCE}/resumen`)
+  },
+
   listar() {
     return api.get(RESOURCE)
   },

@@ -1,7 +1,22 @@
 <script setup>
+import { computed, onMounted, ref } from 'vue'
 import { useAuth } from '@/composables/useAuth'
+import { solicitudesBeneficiariosAdminService } from '@/services/solicitudesBeneficiariosAdmin.service'
 
 const { usuario } = useAuth()
+const solicitudesPendientes = ref(0)
+
+const seccionesConBadges = computed(() =>
+  secciones.map(seccion => ({
+    ...seccion,
+    items: seccion.items.map(item => ({
+      ...item,
+      badge: item.ruta === '/solicitudes-beneficiarios' && solicitudesPendientes.value > 0
+        ? solicitudesPendientes.value
+        : null
+    }))
+  }))
+)
 
 const secciones = [
   {
@@ -40,6 +55,17 @@ const secciones = [
     ],
   },
 ]
+
+async function cargarResumenSolicitudes() {
+  try {
+    const { data } = await solicitudesBeneficiariosAdminService.resumen()
+    solicitudesPendientes.value = Number(data.resumen?.pendientes ?? 0)
+  } catch {
+    solicitudesPendientes.value = 0
+  }
+}
+
+onMounted(cargarResumenSolicitudes)
 </script>
 
 <template>
@@ -49,13 +75,16 @@ const secciones = [
       <p class="text-muted mb-0">Bienvenido, <strong>{{ usuario?.nombre || 'Administrador' }}</strong></p>
     </div>
 
-    <section v-for="seccion in secciones" :key="seccion.titulo" class="mb-4">
+    <section v-for="seccion in seccionesConBadges" :key="seccion.titulo" class="mb-4">
       <h5 class="section-title">{{ seccion.titulo }}</h5>
       <div class="row g-3">
         <div v-for="item in seccion.items" :key="item.ruta" class="col-sm-6 col-lg-3">
           <router-link :to="item.ruta" class="text-decoration-none">
             <div class="dash-card">
-              <h6 class="fw-bold mb-2">{{ item.titulo }}</h6>
+              <div class="d-flex justify-content-between gap-2 align-items-start">
+                <h6 class="fw-bold mb-2">{{ item.titulo }}</h6>
+                <span v-if="item.badge" class="pending-badge">{{ item.badge }}</span>
+              </div>
               <p class="text-muted small mb-0">{{ item.desc }}</p>
             </div>
           </router-link>
@@ -83,5 +112,18 @@ const secciones = [
 .dash-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 22px rgba(47,65,86,0.14);
+}
+.pending-badge {
+  min-width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  background: #ffc107;
+  color: #2f4156;
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 </style>
