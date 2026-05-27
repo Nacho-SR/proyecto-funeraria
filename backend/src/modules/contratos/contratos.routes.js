@@ -8,6 +8,7 @@ import * as Ctrl from './contratos.controller.js'
 
 const router = Router()
 
+router.get('/', authenticate, asyncHandler(Ctrl.listar))
 router.patch('/:id/baja', authenticate, asyncHandler(Ctrl.darDeBaja))
 
 export default router
