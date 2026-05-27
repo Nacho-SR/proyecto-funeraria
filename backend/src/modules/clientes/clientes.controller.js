@@ -24,6 +24,11 @@ export async function listarMisBeneficiarios (req, res) {
   res.status(200).json({ beneficiarios })
 }
 
+export async function listarProductosActivos (req, res) {
+  const productos = await service.listarProductosActivos()
+  res.status(200).json({ productos })
+}
+
 export async function listarMisSolicitudesBeneficiarios (req, res) {
   const solicitudes = await service.listarMisSolicitudesBeneficiarios(req.user.usuarios_id)
   res.status(200).json({ solicitudes })
