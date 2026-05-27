@@ -4,6 +4,7 @@ import { ApiError } from '../../shared/utils/apiError.js';
 import { AdministrativosService } from '../administrativos/administrativos.service.js';
 import { createBeneficiariosSchema } from '../beneficiarios/beneficiarios.schema.js'
 import { updateBeneficiariosSchema } from '../beneficiarios/beneficiarios.schema.js'
+import { crearSolicitudBeneficiarioSchema } from './solicitudesBeneficiarios.schema.js'
 
 const serviceA = new AdministrativosService()
 const service = new ClientesService()
@@ -21,6 +22,17 @@ export async function listarMisPagos (req, res) {
 export async function listarMisBeneficiarios (req, res) {
   const beneficiarios = await service.listarMisBeneficiarios(req.user.usuarios_id)
   res.status(200).json({ beneficiarios })
+}
+
+export async function listarMisSolicitudesBeneficiarios (req, res) {
+  const solicitudes = await service.listarMisSolicitudesBeneficiarios(req.user.usuarios_id)
+  res.status(200).json({ solicitudes })
+}
+
+export async function crearSolicitudBeneficiario (req, res) {
+  const payload = crearSolicitudBeneficiarioSchema.parse(req.body)
+  const solicitud = await service.crearSolicitudBeneficiario(req.user.usuarios_id, payload)
+  res.status(201).json({ solicitud })
 }
 
 export async function altaBeneficiario (req, res) {

@@ -46,6 +46,83 @@ export class ClientesService {
     return this.repo.listarBeneficiariosPorContratos(contratosActivos)
   }
 
+  async listarMisSolicitudesBeneficiarios(usuarioId) {
+    const cliente = await this.repo.findClienteByUsuarioId(usuarioId)
+    if (!cliente) {
+      throw new ApiError(404, 'No se encontro el perfil de cliente asociado al usuario')
+    }
+
+    return await this.repo.listarSolicitudesBeneficiariosByCliente(cliente.clientes_id)
+  }
+
+  async crearSolicitudBeneficiario(usuarioId, data) {
+    const cliente = await this.repo.findClienteByUsuarioId(usuarioId)
+    if (!cliente) {
+      throw new ApiError(404, 'No se encontro el perfil de cliente asociado al usuario')
+    }
+
+    const contrato = await this.repo.findContratoById(data.contratos_id)
+    if (!contrato || contrato.clientes_id !== cliente.clientes_id) {
+      throw new ApiError(404, 'Contrato no encontrado')
+    }
+    if (contrato.activo === false || (contrato.estado ?? 'activo') !== 'activo') {
+      throw new ApiError(409, 'Solo se pueden solicitar cambios en contratos activos')
+    }
+
+    let beneficiario = null
+    if (data.beneficiario_id) {
+      beneficiario = await this.repo.findBeneficiarioById(data.beneficiario_id)
+      if (!beneficiario || !this.beneficiarioPerteneceAContrato(beneficiario, contrato.contratos_id)) {
+        throw new ApiError(404, 'Beneficiario no encontrado')
+      }
+      if (beneficiario.activo === false) {
+        throw new ApiError(409, 'El beneficiario ya esta inactivo')
+      }
+
+      const pendiente = await this.repo.findSolicitudPendienteBeneficiario({
+        clienteId: cliente.clientes_id,
+        contratoId: contrato.contratos_id,
+        beneficiarioId: beneficiario.beneficiario_id
+      })
+      if (pendiente) {
+        throw new ApiError(409, 'Ya existe una solicitud pendiente para este beneficiario')
+      }
+    }
+
+    const solicitud = {
+      cliente_id: cliente.clientes_id,
+      usuarios_id: usuarioId,
+      contratos_id: contrato.contratos_id,
+      num_contrato: contrato.num_contrato ?? null,
+      beneficiario_id: beneficiario?.beneficiario_id ?? null,
+      tipo: data.tipo,
+      estado: 'pendiente',
+      datos_actuales: beneficiario ? this.snapshotBeneficiario(beneficiario) : null,
+      datos_propuestos: data.tipo === 'eliminar' ? null : data.datos_propuestos,
+      motivo_cliente: data.motivo_cliente ?? '',
+      creado_por: usuarioId,
+      fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+    }
+
+    return await this.repo.crearSolicitudBeneficiario(solicitud)
+  }
+
+  beneficiarioPerteneceAContrato(beneficiario, contratoId) {
+    return (beneficiario.contrato_id ?? beneficiario.contratos_id) === contratoId
+  }
+
+  snapshotBeneficiario(beneficiario) {
+    return {
+      nombre: beneficiario.nombre ?? '',
+      apaterno: beneficiario.apaterno ?? '',
+      amaterno: beneficiario.amaterno ?? '',
+      parentesco: beneficiario.parentesco ?? '',
+      telefono: beneficiario.telefono ?? '',
+      direccion: beneficiario.direccion ?? ''
+    }
+  }
+
   async crearNuevoBeneficiario(data) {
     console.log('Creando nuevo beneficiario con data:', data)
     console.log('Validando si el beneficiario ya existe con nombre:', data.beneficiario.nombre)

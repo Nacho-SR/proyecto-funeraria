@@ -42,6 +42,39 @@ export class ClientesRepository {
       .sort((a, b) => this.fechaMillis(b.fecha_pago ?? b.fechaPago ?? b.fecha_creacion) - this.fechaMillis(a.fecha_pago ?? a.fechaPago ?? a.fecha_creacion))
   }
 
+  async listarSolicitudesBeneficiariosByCliente(clienteId) {
+    const solicitudes = await db.collection('solicitudes_beneficiarios')
+      .where('cliente_id', '==', clienteId)
+      .get()
+
+    if (solicitudes.empty) return []
+
+    return solicitudes.docs
+      .map(doc => ({ solicitud_beneficiario_id: doc.id, ...doc.data() }))
+      .sort((a, b) => this.fechaMillis(b.fecha_creacion) - this.fechaMillis(a.fecha_creacion))
+  }
+
+  async crearSolicitudBeneficiario(data) {
+    const solicitud = db.collection('solicitudes_beneficiarios').doc()
+    await solicitud.set(data)
+    return { solicitud_beneficiario_id: solicitud.id, ...data }
+  }
+
+  async findSolicitudPendienteBeneficiario({ clienteId, contratoId, beneficiarioId }) {
+    let query = db.collection('solicitudes_beneficiarios')
+      .where('cliente_id', '==', clienteId)
+      .where('contratos_id', '==', contratoId)
+      .where('estado', '==', 'pendiente')
+
+    if (beneficiarioId) {
+      query = query.where('beneficiario_id', '==', beneficiarioId)
+    }
+
+    const solicitud = await query.limit(1).get()
+    if (solicitud.empty) return null
+    return { solicitud_beneficiario_id: solicitud.docs[0].id, ...solicitud.docs[0].data() }
+  }
+
   listarBeneficiariosPorContratos(contratos) {
     return contratos
       .flatMap(contrato =>
@@ -85,6 +118,18 @@ export class ClientesRepository {
     const paqueteDoc = await db.collection('paquetes').doc(paqueteId).get()
     if (!paqueteDoc.exists) return null
     return { paquetes_id: paqueteDoc.id, ...paqueteDoc.data() }
+  }
+
+  async findContratoById(contratoId) {
+    const contratoDoc = await db.collection('contratos').doc(contratoId).get()
+    if (!contratoDoc.exists) return null
+    return { contratos_id: contratoDoc.id, ...contratoDoc.data() }
+  }
+
+  async findBeneficiarioById(beneficiarioId) {
+    const beneficiarioDoc = await db.collection('beneficiarios').doc(beneficiarioId).get()
+    if (!beneficiarioDoc.exists) return null
+    return { beneficiario_id: beneficiarioDoc.id, ...beneficiarioDoc.data() }
   }
 
   async findAdicionalById(adicionalId) {
