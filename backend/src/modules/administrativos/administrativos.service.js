@@ -193,6 +193,22 @@ export class AdministrativosService {
     return { ...this.sanitizeUsuario(nuevoUsuario), ...infoCobrador }
   }
 
+  async obtenerCliente(id) {
+    const cliente = await this.repo.obtenerClienteEdicion(id)
+    if (!cliente) {
+      throw new ApiError(404, 'Cliente no encontrado')
+    }
+    return cliente
+  }
+
+  async actualizarCliente(id, data) {
+    const cliente = await this.repo.findClienteById(id)
+    if (!cliente) {
+      throw new ApiError(404, 'Cliente no encontrado')
+    }
+    return await this.repo.actualizarCliente(id, data)
+  }
+
   async obtenerCobrador(id) {
     const cobrador = await this.repo.obtenerCobradorEdicion(id)
     if (!cobrador) {

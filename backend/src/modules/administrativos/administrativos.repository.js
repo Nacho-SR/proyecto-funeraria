@@ -410,6 +410,45 @@ export class AdministrativosRepository {
     return resultado;
   }
 
+  async obtenerClienteEdicion(id) {
+    const cliente = await this.findClienteById(id)
+    if (!cliente) return null
+
+    const usuario = cliente.usuarios_id
+      ? await this.findUserById(cliente.usuarios_id)
+      : null
+
+    return {
+      clienteID: id,
+      cliente_id: id,
+      nombre: usuario?.nombre ?? '',
+      apaterno: usuario?.apaterno ?? '',
+      amaterno: usuario?.amaterno ?? '',
+      email: usuario?.email ?? '',
+      telefono: cliente.telefono ?? '',
+      calle: cliente.calle ?? '',
+      colonia: cliente.colonia ?? '',
+      numCasa: cliente.numCasa ?? cliente.num_casa ?? '',
+      usuarioID: cliente.usuarios_id ?? null,
+      usuario_id: cliente.usuarios_id ?? null,
+      activo: cliente.activo !== false
+    }
+  }
+
+  async actualizarCliente(id, data) {
+    const update = {
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+    }
+
+    if (data.telefono !== undefined) update.telefono = data.telefono
+    if (data.calle !== undefined) update.calle = data.calle
+    if (data.colonia !== undefined) update.colonia = data.colonia
+    if (data.numCasa !== undefined) update.num_casa = data.numCasa
+
+    await db.collection("clientes").doc(id).update(update)
+    return await this.obtenerClienteEdicion(id)
+  }
+
   async obtenerCobradorEdicion(id) {
     const cobrador = await this.findCobradorById(id)
     if (!cobrador) return null

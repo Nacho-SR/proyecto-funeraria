@@ -24,6 +24,7 @@ router.get('/solicitudes-beneficiarios/resumen', asyncHandler(Ctrl.resumenSolici
 router.get('/solicitudes-beneficiarios', asyncHandler(Ctrl.listarSolicitudesBeneficiarios))
 router.get('/pagos', asyncHandler(Ctrl.listarPagos))
 router.get('/pagos/:id', asyncHandler(Ctrl.obtenerPago))
+router.get('/clientes/:id', asyncHandler(Ctrl.obtenerCliente))
 router.get('/cobradores/:id', asyncHandler(Ctrl.obtenerCobrador))
 router.get('/:clienteID/pagos', asyncHandler(Ctrl.obtenerPagosPorCliente))
 router.post('/alta-cliente', asyncHandler(Ctrl.crearCliente))
@@ -37,6 +38,7 @@ router.put('/solicitudes-beneficiarios/:id/resolver', asyncHandler(Ctrl.resolver
 router.put('/validar-pago/:id', asyncHandler(Ctrl.validarPago))
 router.put('/rutas-cobro/:id/visitas/:detalleId/revisar', asyncHandler(Ctrl.revisarVisitaRuta))
 router.put('/baja-cliente/:id', asyncHandler(Ctrl.darBajaCliente))
+router.put('/clientes/:id', asyncHandler(Ctrl.actualizarCliente))
 router.put('/cobradores/:id', asyncHandler(Ctrl.actualizarCobrador))
 
 export default router
