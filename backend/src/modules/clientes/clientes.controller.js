@@ -54,7 +54,7 @@ export async function actualizarBeneficiario (req, res) {
   }
 }
 
-export async function crearEnlacePago (req, res) => {
+export const crearEnlacePago = async (req, res) => {
   const { contratoID, clienteID, monto, correoCliente } = req.body
   if (!contratoID || !monto || !correoCliente) {
         return res.status(400).json({ error: "Faltan datos obligatorios para generar el cobro" });

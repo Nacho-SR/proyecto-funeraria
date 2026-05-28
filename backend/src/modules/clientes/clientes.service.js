@@ -6,8 +6,6 @@ import { admin } from '../../config/firebase.js'
 import Stripe from 'stripe'
 import { env } from '../../config/env.js'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
-
 export class ClientesService {
     constructor () {
         this.repo = new ClientesRepository()
@@ -150,6 +148,8 @@ export class ClientesService {
 
   async generarEnlaceDePago(datosPago) {
     console.log('Generando enlace de Stripe para contrato:', datosPago.contratoID)
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
     const montoEnCentavos = Math.round(datosPago.monto * 100)
 
