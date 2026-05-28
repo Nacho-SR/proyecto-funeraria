@@ -1,12 +1,19 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import api from '@/services/api'
+import { cobradorService } from '@/services/otros.service'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 
 const todos = ref([])
 const cargando = ref(false)
 const error = ref('')
+const exito = ref('')
 const busqueda = ref('')
 const filtroEstado = ref('todos')
+
+const modalVisible = ref(false)
+const seleccionado = ref(null)
+const procesando = ref(false)
 
 async function cargar() {
   cargando.value = true
@@ -36,6 +43,27 @@ const filtrados = computed(() => {
   return lista
 })
 
+function pedirBaja(cobrador, usuario) {
+  seleccionado.value = { cobrador, usuario }
+  modalVisible.value = true
+}
+
+async function confirmarBaja() {
+  procesando.value = true
+  exito.value = ''
+  error.value = ''
+  try {
+    await cobradorService.darBaja(seleccionado.value.cobrador.cobrador_id)
+    exito.value = `Cobrador "${seleccionado.value.usuario?.nombre} ${seleccionado.value.usuario?.apaterno}" dado de baja correctamente.`
+    modalVisible.value = false
+    await cargar()
+  } catch {
+    error.value = 'Error al dar de baja el cobrador.'
+  } finally {
+    procesando.value = false
+  }
+}
+
 onMounted(cargar)
 </script>
 
@@ -46,6 +74,11 @@ onMounted(cargar)
         <h3 class="mb-0 fw-bold" style="color: var(--primary)">Cobradores</h3>
         <small class="text-muted">{{ filtrados.length }} resultado(s)</small>
       </div>
+    </div>
+
+    <div v-if="exito" class="alert alert-success alert-dismissible">
+      {{ exito }}
+      <button type="button" class="btn-close" @click="exito = ''"></button>
     </div>
 
     <div class="filtros-bar mb-4">
@@ -93,13 +126,26 @@ onMounted(cargar)
               </td>
               <td class="text-end">
                 <router-link :to="`/editar-cobrador/${cobrador.cobrador_id}`" class="btn btn-sm btn-outline-secondary me-1">✏️</router-link>
-                <router-link to="/baja-cobrador" class="btn btn-sm btn-outline-danger" v-if="cobrador.activo !== false">🗑</router-link>
+                <button
+                  v-if="cobrador.activo !== false"
+                  class="btn btn-sm btn-outline-danger"
+                  @click="pedirBaja(cobrador, usuario)"
+                >🗑</button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
+
+    <ConfirmModal
+      :show="modalVisible"
+      titulo="Baja lógica de cobrador"
+      :mensaje="`¿Dar de baja al cobrador &quot;${seleccionado?.usuario?.nombre} ${seleccionado?.usuario?.apaterno}&quot;? El registro se conserva pero quedará inactivo.`"
+      :cargando="procesando"
+      @confirmar="confirmarBaja"
+      @cancelar="modalVisible = false"
+    />
   </div>
 </template>
 
