@@ -1,13 +1,20 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import api from '@/services/api'
+import { contratoService } from '@/services/contrato.service'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 
 const todos = ref([])
 const cargando = ref(false)
 const error = ref('')
+const exito = ref('')
 const busqueda = ref('')
 const filtroFrecuencia = ref('todos')
 const filtroEstado = ref('todos')
+
+const modalVisible = ref(false)
+const seleccionado = ref(null)
+const procesando = ref(false)
 
 function contratoId(contrato) {
   return contrato.contratos_id ?? contrato.id ?? ''
@@ -111,6 +118,27 @@ const estadoClass = (estado) => ({
   inactivo: 'bg-secondary'
 }[estado] ?? 'bg-secondary')
 
+function pedirBaja(contrato) {
+  seleccionado.value = contrato
+  modalVisible.value = true
+}
+
+async function confirmarBaja() {
+  procesando.value = true
+  exito.value = ''
+  error.value = ''
+  try {
+    await contratoService.darBaja(contratoId(seleccionado.value))
+    exito.value = `Contrato "${seleccionado.value.num_contrato ?? contratoId(seleccionado.value)}" dado de baja correctamente.`
+    modalVisible.value = false
+    await cargar()
+  } catch {
+    error.value = 'Error al dar de baja el contrato.'
+  } finally {
+    procesando.value = false
+  }
+}
+
 onMounted(cargar)
 </script>
 
@@ -122,6 +150,11 @@ onMounted(cargar)
         <small class="text-muted">{{ filtrados.length }} resultado(s)</small>
       </div>
       <router-link to="/alta-contrato" class="btn btn-custom">+ Nuevo contrato</router-link>
+    </div>
+
+    <div v-if="exito" class="alert alert-success alert-dismissible">
+      {{ exito }}
+      <button type="button" class="btn-close" @click="exito = ''"></button>
     </div>
 
     <div class="filtros-bar mb-4">
@@ -209,19 +242,28 @@ onMounted(cargar)
                 </span>
               </td>
               <td class="text-end">
-                <router-link
+                <button
                   v-if="estadoContrato(contrato) === 'activo'"
-                  to="/baja-contrato"
                   class="btn btn-sm btn-outline-danger"
+                  @click="pedirBaja(contrato)"
                 >
                   Baja
-                </router-link>
+                </button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
+
+    <ConfirmModal
+      :show="modalVisible"
+      titulo="Baja lógica de contrato"
+      :mensaje="`¿Dar de baja el contrato &quot;${seleccionado?.num_contrato ?? contratoId(seleccionado ?? {})}&quot;? El registro se conserva pero quedará inactivo.`"
+      :cargando="procesando"
+      @confirmar="confirmarBaja"
+      @cancelar="modalVisible = false"
+    />
   </div>
 </template>
 
