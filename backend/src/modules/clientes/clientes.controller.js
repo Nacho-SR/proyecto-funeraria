@@ -53,3 +53,20 @@ export async function actualizarBeneficiario (req, res) {
     throw new ApiError(400, 'Datos de beneficiario inválidos', error.errors)
   }
 }
+
+export const crearEnlacePago = async (req, res) => {
+  const { contratoID, clienteID, monto, correoCliente } = req.body
+  if (!contratoID || !monto || !correoCliente) {
+        return res.status(400).json({ error: "Faltan datos obligatorios para generar el cobro" });
+    }
+  const resultado = await service.generarEnlaceDePago({
+        contratoID,
+        clienteID,
+        monto,
+        correoCliente
+    })
+  res.status(200).json({
+        mensaje: "Enlace de pago generado con éxito",
+        url: resultado.urlPago
+    })
+}
