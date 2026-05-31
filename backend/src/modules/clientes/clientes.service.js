@@ -3,8 +3,6 @@ import { ClientesRepository } from './clientes.repo.js'
 import { FieldValue } from 'firebase-admin/firestore'
 import bcrypt from 'bcrypt'
 import { admin } from '../../config/firebase.js'
-import Stripe from 'stripe'
-import { env } from '../../config/env.js'
 
 export class ClientesService {
     constructor () {
@@ -144,45 +142,5 @@ export class ClientesService {
 
     const nuevoBeneficiario = await this.repo.crearNuevoBeneficiario(beneficiario)
     return { nuevoBeneficiario }
-  }
-
-  async generarEnlaceDePago(datosPago) {
-    console.log('Generando enlace de Stripe para contrato:', datosPago.contratoID)
-
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
-
-    const montoEnCentavos = Math.round(datosPago.monto * 100)
-
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-            line_items: [
-              {
-                price_data: {
-                        currency: 'mxn', // Moneda en pesos mexicanos
-                        product_data: {
-                            name: `Pago de Contrato Funerario: ${datosPago.contratoID}`,
-                            description: `Cliente ID: ${datosPago.clienteID}`,
-                        },
-                        unit_amount: montoEnCentavos,
-                    },
-                    quantity: 1,
-              },
-            ],
-
-            mode: 'payment',
-            customer_email: datosPago.correoCliente,
-            success_url: 'http://localhost:3000/pago-exitoso?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url: 'http://localhost:3000/pago-cancelado',
-
-            metadata: {
-                contratoID: datosPago.contratoID,
-                clienteID: datosPago.clienteID
-            }
-    })
-
-    return { 
-            urlPago: session.url,
-            sessionID: session.id 
-        }
   }
 }

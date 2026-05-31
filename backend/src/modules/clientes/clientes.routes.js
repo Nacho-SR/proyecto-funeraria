@@ -19,6 +19,5 @@ router.get('/solicitudes-beneficiarios', asyncHandler(ctrl.listarMisSolicitudesB
 router.post('/solicitudes-beneficiarios', asyncHandler(ctrl.crearSolicitudBeneficiario))
 router.post('/alta-beneficiario', asyncHandler(Ctrl.altaBeneficiario))
 router.post('/actualizar-beneficiario', asyncHandler(Ctrl.actualizarBeneficiario))
-router.post('/generar-link-pago', asyncHandler(ctrl.crearEnlacePago))
 
 export default router
