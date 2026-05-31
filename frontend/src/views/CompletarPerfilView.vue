@@ -19,7 +19,7 @@ const error = ref('')
 const guardando = ref(false)
 
 function dashboardPorRol(rol) {
-  if (rol === 'admin') return 'dashboard-admin'
+  if (rol === 'admin') return 'dashboard'
   if (rol === 'cobrador') return 'dashboard-cobrador'
   return 'dashboard-cliente'
 }

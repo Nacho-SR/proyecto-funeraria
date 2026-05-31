@@ -83,10 +83,7 @@ watch([isAutenticado, esAdmin], ([autenticado, admin]) => {
 
           <template v-if="isAutenticado && esAdmin">
             <li class="nav-item">
-              <router-link class="nav-link text-white" to="/dashboard-admin" @click="cerrarTodo">Panel admin</router-link>
-            </li>
-            <li class="nav-item">
-              <router-link class="nav-link text-white" to="/dashboard" @click="cerrarTodo">Resumen</router-link>
+              <router-link class="nav-link text-white" to="/dashboard" @click="cerrarTodo">Dashboard</router-link>
             </li>
             <li class="nav-item dropdown-parent">
               <span class="nav-link text-white nav-dropdown-toggle">Gestion</span>

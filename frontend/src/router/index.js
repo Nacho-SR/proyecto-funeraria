@@ -12,7 +12,7 @@ const routes = [
   { path: '/completar-perfil', name: 'completar-perfil', component: () => import('../views/CompletarPerfilView.vue'), meta: { requiresAuth: true } },
 
   // Dashboards
-  { path: '/dashboard-admin', name: 'dashboard-admin', component: () => import('../views/AdminDashboard.vue'), meta: { requiresAuth: true, rol: 'admin' } },
+  { path: '/dashboard-admin', name: 'dashboard-admin', redirect: { name: 'dashboard' }, meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/dashboard-cobrador', name: 'dashboard-cobrador', component: () => import('../views/CobradorDashboard.vue'), meta: { requiresAuth: true, rol: 'cobrador' } },
   { path: '/rutas-cobro', name: 'rutas-cobro', component: () => import('../views/RutasCobroView.vue'), meta: { requiresAuth: true, rol: 'cobrador' } },
   { path: '/dashboard-cliente', name: 'dashboard-cliente', component: () => import('../views/ClienteDashboard.vue'), meta: { requiresAuth: true, rol: 'cliente' } },
@@ -63,7 +63,7 @@ const router = createRouter({
 })
 
 function dashboardPorRol(rol) {
-  if (rol === 'admin') return 'dashboard-admin'
+  if (rol === 'admin') return 'dashboard'
   if (rol === 'cobrador') return 'dashboard-cobrador'
   if (rol === 'cliente') return 'dashboard-cliente'
   return 'login'

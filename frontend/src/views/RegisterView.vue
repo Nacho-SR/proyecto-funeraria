@@ -120,7 +120,7 @@ async function registrar() {
               </div>
 
               <div class="d-flex justify-content-end gap-2">
-                <button type="button" class="btn btn-outline-secondary" @click="router.push({ name: 'dashboard-admin' })">
+                <button type="button" class="btn btn-outline-secondary" @click="router.push({ name: 'dashboard' })">
                   Cancelar
                 </button>
                 <button class="btn btn-custom" :disabled="cargando">
