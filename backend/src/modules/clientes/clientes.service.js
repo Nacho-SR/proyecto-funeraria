@@ -143,4 +143,20 @@ export class ClientesService {
     const nuevoBeneficiario = await this.repo.crearNuevoBeneficiario(beneficiario)
     return { nuevoBeneficiario }
   }
+
+  async obtenerListaClientes() {
+    console.log('Procesando visualización general de clientes')
+
+    const clientes = await this.repo.listarTodosLosClientes()
+
+    const clientesActivos = clientes.filter(cliente => cliente.activo !== false)
+
+    return {
+        resumen: {
+            totalRegistrados: clientes.length,
+            totalActivos: clientesActivos.length
+        },
+        clientes: clientes
+    }
+  }
 }
