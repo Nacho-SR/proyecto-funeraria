@@ -3,8 +3,6 @@ import { ClientesRepository } from './clientes.repo.js'
 import { FieldValue } from 'firebase-admin/firestore'
 import bcrypt from 'bcrypt'
 import { admin } from '../../config/firebase.js'
-import Stripe from 'stripe'
-import { env } from '../../config/env.js'
 
 export class ClientesService {
     constructor () {
@@ -146,43 +144,19 @@ export class ClientesService {
     return { nuevoBeneficiario }
   }
 
-  async generarEnlaceDePago(datosPago) {
-    console.log('Generando enlace de Stripe para contrato:', datosPago.contratoID)
+  async obtenerListaClientes() {
+    console.log('Procesando visualización general de clientes')
 
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+    const clientes = await this.repo.listarTodosLosClientes()
 
-    const montoEnCentavos = Math.round(datosPago.monto * 100)
+    const clientesActivos = clientes.filter(cliente => cliente.activo !== false)
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-            line_items: [
-              {
-                price_data: {
-                        currency: 'mxn', // Moneda en pesos mexicanos
-                        product_data: {
-                            name: `Pago de Contrato Funerario: ${datosPago.contratoID}`,
-                            description: `Cliente ID: ${datosPago.clienteID}`,
-                        },
-                        unit_amount: montoEnCentavos,
-                    },
-                    quantity: 1,
-              },
-            ],
-
-            mode: 'payment',
-            customer_email: datosPago.correoCliente,
-            success_url: 'http://localhost:3000/pago-exitoso?session_id={CHECKOUT_SESSION_ID}',
-            cancel_url: 'http://localhost:3000/pago-cancelado',
-
-            metadata: {
-                contratoID: datosPago.contratoID,
-                clienteID: datosPago.clienteID
-            }
-    })
-
-    return { 
-            urlPago: session.url,
-            sessionID: session.id 
-        }
+    return {
+        resumen: {
+            totalRegistrados: clientes.length,
+            totalActivos: clientesActivos.length
+        },
+        clientes: clientes
+    }
   }
 }

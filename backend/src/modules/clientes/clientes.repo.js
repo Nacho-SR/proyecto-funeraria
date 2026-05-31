@@ -315,4 +315,17 @@ export class ClientesRepository {
     return { id: pago.id, ...pago.docs[0].data() }
   }
 
+  async listarTodosLosClientes() {
+    console.log('Obteniendo lista de clientes desde Firestore...')
+
+    const snapshot = await db.collection('clientes').orderBy('fecha_creacion', 'desc').get()
+
+    if (snapshot.empty) return []
+
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+  }
+
 }
