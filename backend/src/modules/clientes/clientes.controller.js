@@ -53,3 +53,8 @@ export async function actualizarBeneficiario (req, res) {
     throw new ApiError(400, 'Datos de beneficiario inválidos', error.errors)
   }
 }
+
+export const obtenerTodosLosClientes = async (req, res) => {
+  const resultado = await service.obtenerListaClientes()
+  res.status(200).json(resultado)
+}
