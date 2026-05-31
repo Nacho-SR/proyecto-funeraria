@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { solicitudesBeneficiariosAdminService } from '@/services/solicitudesBeneficiariosAdmin.service'
@@ -10,6 +10,24 @@ const router = useRouter()
 const menuAbierto = ref(false)
 const perfilAbierto = ref(false)
 const solicitudesPendientes = ref(0)
+
+const nombreUsuario = computed(() => {
+  const actual = usuario.value ?? {}
+  const nombre = [
+    actual.nombre,
+    actual.apaterno,
+    actual.amaterno
+  ].filter(Boolean).join(' ').trim()
+
+  if (nombre) return nombre
+  if (actual.nombre_completo) return actual.nombre_completo
+  if (actual.displayName) return actual.displayName
+  if (actual.email) return actual.email.split('@')[0]
+  if (actual.rol === 'admin') return 'Administrador'
+  return 'Usuario'
+})
+
+const inicialUsuario = computed(() => nombreUsuario.value[0]?.toUpperCase() ?? 'U')
 
 function toggleMenu() {
   menuAbierto.value = !menuAbierto.value
@@ -164,15 +182,15 @@ watch([isAutenticado, esAdmin], ([autenticado, admin]) => {
 
           <li v-else class="nav-item navbar-perfil position-relative">
             <button class="btn-tres-puntos" @click.stop="togglePerfil" title="Opciones de usuario">
-              <div class="avatar-mini">{{ (usuario?.nombre?.[0] || 'U').toUpperCase() }}</div>
+              <div class="avatar-mini">{{ inicialUsuario }}</div>
               <span class="tres-puntos">&#8942;</span>
             </button>
 
             <div v-if="perfilAbierto" class="perfil-dropdown shadow">
               <div class="perfil-dropdown__header">
-                <div class="perfil-dropdown__avatar">{{ (usuario?.nombre?.[0] || 'U').toUpperCase() }}</div>
+                <div class="perfil-dropdown__avatar">{{ inicialUsuario }}</div>
                 <div>
-                  <p class="fw-bold mb-0 text-dark">{{ usuario?.nombre || 'Usuario' }}</p>
+                  <p class="fw-bold mb-0 text-dark">{{ nombreUsuario }}</p>
                   <small class="text-muted">{{ usuario?.email }}</small><br/>
                   <span class="badge-rol-small">{{ usuario?.rol }}</span>
                 </div>
