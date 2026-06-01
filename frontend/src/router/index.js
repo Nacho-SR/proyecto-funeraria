@@ -77,6 +77,13 @@ function rolGuardado() {
   }
 }
 
+function tituloPorRol(rol) {
+  if (rol === 'admin') return 'Funeraria | Sist administracion'
+  if (rol === 'cobrador') return 'Funeraria | Cobradores'
+  if (rol === 'cliente') return 'Funeraria | Cliente'
+  return 'Funeraria'
+}
+
 router.beforeEach(async (to) => {
   const { token, usuario, validarSesion } = useAuth()
 
@@ -105,6 +112,11 @@ router.beforeEach(async (to) => {
   ) {
     return { name: 'completar-perfil' }
   }
+})
+
+router.afterEach((to) => {
+  const { usuario } = useAuth()
+  document.title = tituloPorRol(usuario.value?.rol ?? to.meta.rol)
 })
 
 export default router

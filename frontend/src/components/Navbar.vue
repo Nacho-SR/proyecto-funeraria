@@ -86,7 +86,8 @@ watch([isAutenticado, esAdmin], ([autenticado, admin]) => {
   <nav class="navbar navbar-expand-lg navbar-custom shadow-sm">
     <div class="container">
       <router-link class="navbar-brand fw-bold text-white" to="/" @click="cerrarTodo">
-        Funeraria
+        <img src="/funeraria-logo.svg" alt="" class="brand-logo" aria-hidden="true">
+        <span>Funeraria</span>
       </router-link>
 
       <button class="navbar-toggler" type="button" @click="toggleMenu">
@@ -215,7 +216,19 @@ watch([isAutenticado, esAdmin], ([autenticado, admin]) => {
   top: 0;
   z-index: 1000;
 }
-.navbar-brand { font-size: 1.3rem; letter-spacing: 1px; }
+.navbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.3rem;
+  letter-spacing: 1px;
+}
+.brand-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.16);
+}
 .nav-link { margin-left: 4px; padding: 8px 12px !important; border-radius: 8px; transition: background 0.2s; }
 .nav-link:hover, .router-link-active.nav-link { background: rgba(255,255,255,0.12); }
 
