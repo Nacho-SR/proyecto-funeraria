@@ -17,6 +17,32 @@ const fechaHasta = ref('')
 const pagoDetalle = ref(null)
 const modalDetalle = ref(false)
 
+function fechaPago(pago) {
+  return pago.fechaPago ?? pago.fecha_pago ?? pago.fecha_creacion ?? null
+}
+
+function fechaValor(fecha) {
+  if (!fecha) return null
+  if (typeof fecha.toDate === 'function') return fecha.toDate()
+  if (fecha.seconds || fecha._seconds) return new Date((fecha.seconds ?? fecha._seconds) * 1000)
+
+  const parsed = new Date(fecha)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+function formatoFecha(fecha) {
+  const valor = fechaValor(fecha)
+  return valor ? valor.toLocaleDateString('es-MX') : '-'
+}
+
+function inicioDia(fecha) {
+  return new Date(`${fecha}T00:00:00`).getTime()
+}
+
+function finDia(fecha) {
+  return new Date(`${fecha}T23:59:59.999`).getTime()
+}
+
 async function cargar() {
   cargando.value = true
   error.value = ''
@@ -46,10 +72,18 @@ const filtrados = computed(() => {
   }
 
   if (fechaDesde.value) {
-    lista = lista.filter(p => new Date(p.fechaPago ?? p.fecha_pago) >= new Date(fechaDesde.value))
+    const desde = inicioDia(fechaDesde.value)
+    lista = lista.filter(p => {
+      const fecha = fechaValor(fechaPago(p))
+      return fecha && fecha.getTime() >= desde
+    })
   }
   if (fechaHasta.value) {
-    lista = lista.filter(p => new Date(p.fechaPago ?? p.fecha_pago) <= new Date(fechaHasta.value))
+    const hasta = finDia(fechaHasta.value)
+    lista = lista.filter(p => {
+      const fecha = fechaValor(fechaPago(p))
+      return fecha && fecha.getTime() <= hasta
+    })
   }
 
   return lista
@@ -199,7 +233,7 @@ onMounted(cargar)
               <td class="fw-semibold">{{ p.contratoID ?? p.contrato_id ?? '—' }}</td>
               <td>{{ p.cliente ?? '—' }}</td>
               <td class="fw-semibold">${{ Number(p.monto ?? 0).toLocaleString('es-MX') }}</td>
-              <td>{{ (p.fechaPago ?? p.fecha_pago) ? new Date(p.fechaPago ?? p.fecha_pago).toLocaleDateString('es-MX') : '—' }}</td>
+              <td>{{ formatoFecha(fechaPago(p)) }}</td>
               <td>{{ p.cobrador ?? '—' }}</td>
               <td>
                 <span class="badge text-capitalize" :class="estatusClass(p.estatus ?? p.estado)">
@@ -242,7 +276,7 @@ onMounted(cargar)
           </div>
           <div class="detalle-row">
             <span class="detalle-label">Fecha de pago:</span>
-            <span>{{ (pagoDetalle.fechaPago ?? pagoDetalle.fecha_pago) ? new Date(pagoDetalle.fechaPago ?? pagoDetalle.fecha_pago).toLocaleDateString('es-MX') : '—' }}</span>
+            <span>{{ formatoFecha(fechaPago(pagoDetalle)) }}</span>
           </div>
           <div class="detalle-row">
             <span class="detalle-label">Cobrador:</span>

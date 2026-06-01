@@ -55,6 +55,28 @@ const totalContratos = computed(() => contratos.value.length)
 const estadoContrato = (contrato) => contrato.estado ?? (contrato.activo === false ? 'inactivo' : 'activo')
 const contratosActivos = computed(() => contratos.value.filter(c => estadoContrato(c) === 'activo').length)
 
+function fechaPago(pago) {
+  return pago.fechaPago ?? pago.fecha_pago ?? pago.fecha_creacion ?? null
+}
+
+function fechaValor(fecha) {
+  if (!fecha) return null
+  if (typeof fecha.toDate === 'function') return fecha.toDate()
+  if (fecha.seconds || fecha._seconds) return new Date((fecha.seconds ?? fecha._seconds) * 1000)
+
+  const parsed = new Date(fecha)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+function fechaMillis(fecha) {
+  return fechaValor(fecha)?.getTime() ?? 0
+}
+
+function formatoFecha(fecha) {
+  const valor = fechaValor(fecha)
+  return valor ? valor.toLocaleDateString('es-MX') : '-'
+}
+
 const totalCobrado = computed(() =>
   pagos.value
     .filter(p => (p.estatus ?? p.estado) === 'validado')
@@ -111,8 +133,8 @@ const chartIngresosMensuales = computed(() => {
   pagos.value
     .filter(p => (p.estatus ?? p.estado) === 'validado')
     .forEach(p => {
-      const fecha = new Date(p.fechaPago ?? p.fecha_pago)
-      if (isNaN(fecha)) return
+      const fecha = fechaValor(fechaPago(p))
+      if (!fecha) return
       const key = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`
       meses[key] = (meses[key] ?? 0) + Number(p.monto ?? 0)
     })
@@ -145,7 +167,7 @@ const opcionesGenericas = {
 
 const ultimosPagos = computed(() => {
   return [...pagos.value]
-    .sort((a, b) => new Date(b.fechaPago ?? b.fecha_pago) - new Date(a.fechaPago ?? a.fecha_pago))
+    .sort((a, b) => fechaMillis(fechaPago(b)) - fechaMillis(fechaPago(a)))
     .slice(0, 5)
 })
 
@@ -289,7 +311,7 @@ onMounted(cargarTodo)
                 <td class="fw-semibold">{{ p.contratoID ?? p.contrato_id ?? '—' }}</td>
                 <td>{{ p.cliente ?? '—' }}</td>
                 <td class="fw-semibold">${{ Number(p.monto ?? 0).toLocaleString('es-MX') }}</td>
-                <td>{{ (p.fechaPago ?? p.fecha_pago) ? new Date(p.fechaPago ?? p.fecha_pago).toLocaleDateString('es-MX') : '—' }}</td>
+                <td>{{ formatoFecha(fechaPago(p)) }}</td>
                 <td>
                   <span class="badge text-capitalize" :class="estatusClass(p.estatus ?? p.estado)">
                     {{ p.estatus ?? p.estado }}
