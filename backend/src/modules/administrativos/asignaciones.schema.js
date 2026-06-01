@@ -76,9 +76,30 @@ export const nuevoCobradorSchema = z.object({
   cobrador: cobradorSchema
 })
 
+export const editarClienteSchema = z.object({
+  telefono: z.string().min(7).optional(),
+  calle: z.string().min(3).optional(),
+  colonia: z.string().min(3).optional(),
+  numCasa: z.string().min(1).optional()
+}).strict()
+
+export const editarCobradorSchema = z.object({
+  nombre: z.string().min(3).optional(),
+  direccion: z.string().min(4).optional(),
+  telefono: z.string().min(7).optional()
+}).strict()
+
+export const editarServicioSchema = z.object({
+  nombre: z.string().min(3).optional(),
+  descripcion: z.string().optional(),
+  precio: z.coerce.number().min(0).optional()
+}).strict()
+
 export const createPaqueteAdicionalSchema = z.object({
+  paquete_id: z.string().min(3).optional(),
   paquetes_id: z.string().min(3).optional(),
   paquete: paqueteSchema.optional(),
+  adicional_id: z.string().min(3).optional(),
   adicionales_id: z.string().min(3).optional(),
   adicional: adicionalSchema.optional(),
   promo: z.boolean().default(false).optional(),
@@ -118,3 +139,12 @@ export const updateAsignacionCobroSchema = z.object({
     contratoID: z.string(),
   })).optional()
 }).strict()
+
+export const revisarVisitaRutaSchema = z.object({
+  estatus_pago: z.enum(['validado', 'cancelado']).optional()
+})
+
+export const resolverSolicitudBeneficiarioSchema = z.object({
+  accion: z.enum(['aprobar', 'rechazar']),
+  comentario_admin: z.string().trim().max(500).optional().default('')
+})

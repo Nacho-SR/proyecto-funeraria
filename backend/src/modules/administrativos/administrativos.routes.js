@@ -4,21 +4,43 @@
 import { Router } from 'express'
 import { asyncHandler } from '../../shared/utils/asyncHandler.js'
 import { authenticate } from '../../shared/middleware/auth.middleware.js'
+import { requireRole } from '../../shared/middleware/requireRole.middleware.js'
 import * as Ctrl from './administrativos.controller.js'
 
 const router = Router()
 
-// Todas las req usan JWT
-//router.use(authenticate)
+router.use(authenticate)
+router.use(requireRole('admin'))
+
 router.get('/clientes-activos', asyncHandler(Ctrl.listarClientesActivos))
 router.get('/cobradores-activos', asyncHandler(Ctrl.listarCobradoresActivos))
 router.get('/productos-activos', asyncHandler(Ctrl.listarProductosActivos))
+router.get('/rutas-cobro-activas', asyncHandler(Ctrl.listarRutasCobro))
+router.get('/rutas-cobro-validacion', asyncHandler(Ctrl.listarRutasCobroValidacion))
+router.get('/rutas-cobro/:id/validacion', asyncHandler(Ctrl.obtenerRutaCobroValidacion))
+router.get('/detalles-cobro/:id', asyncHandler(Ctrl.obtenerDetallesCobro))
+router.get('/info-contratos',asyncHandler(Ctrl.obtenerInfoContratos))
+router.get('/solicitudes-beneficiarios/resumen', asyncHandler(Ctrl.resumenSolicitudesBeneficiarios))
+router.get('/solicitudes-beneficiarios', asyncHandler(Ctrl.listarSolicitudesBeneficiarios))
+router.get('/pagos', asyncHandler(Ctrl.listarPagos))
+router.get('/pagos/:id', asyncHandler(Ctrl.obtenerPago))
+router.get('/clientes/:id', asyncHandler(Ctrl.obtenerCliente))
+router.get('/cobradores/:id', asyncHandler(Ctrl.obtenerCobrador))
+router.get('/servicios/:id', asyncHandler(Ctrl.obtenerServicio))
+router.get('/:clienteID/pagos', asyncHandler(Ctrl.obtenerPagosPorCliente))
 router.post('/alta-cliente', asyncHandler(Ctrl.crearCliente))
 router.post('/alta-cobrador', asyncHandler(Ctrl.crearCobrador))
 router.post('/nuevo-contrato', asyncHandler(Ctrl.crearContrato))
 router.post('/alta-paquete-adicional', asyncHandler(Ctrl.crearPaqueteAdicional))
 router.post('/nueva-ruta-cobro', asyncHandler(Ctrl.crearRutaCobro))
+router.post('/nuevo-pago', asyncHandler(Ctrl.nuevoPago))
+router.post('/rutas-cobro/:id/terminar-validacion', asyncHandler(Ctrl.terminarValidacionRuta))
+router.put('/solicitudes-beneficiarios/:id/resolver', asyncHandler(Ctrl.resolverSolicitudBeneficiario))
+router.put('/validar-pago/:id', asyncHandler(Ctrl.validarPago))
+router.put('/rutas-cobro/:id/visitas/:detalleId/revisar', asyncHandler(Ctrl.revisarVisitaRuta))
 router.put('/baja-cliente/:id', asyncHandler(Ctrl.darBajaCliente))
-
+router.put('/clientes/:id', asyncHandler(Ctrl.actualizarCliente))
+router.put('/cobradores/:id', asyncHandler(Ctrl.actualizarCobrador))
+router.put('/servicios/:id', asyncHandler(Ctrl.actualizarServicio))
 
 export default router

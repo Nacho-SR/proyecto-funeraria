@@ -1,14 +1,21 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import api from '@/services/api'
+import { servicioService } from '@/services/otros.service'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 
 const paquetes = ref([])
 const adicionales = ref([])
 const cargando = ref(false)
 const error = ref('')
+const exito = ref('')
 const busqueda = ref('')
 const filtroTipo = ref('todos')
 const filtroEstado = ref('todos')
+
+const modalVisible = ref(false)
+const seleccionado = ref(null)
+const procesando = ref(false)
 
 async function cargar() {
   cargando.value = true
@@ -41,6 +48,27 @@ const filtrados = computed(() => {
   return lista
 })
 
+function pedirBaja(servicio) {
+  seleccionado.value = servicio
+  modalVisible.value = true
+}
+
+async function confirmarBaja() {
+  procesando.value = true
+  exito.value = ''
+  error.value = ''
+  try {
+    await servicioService.darBaja(seleccionado.value._id)
+    exito.value = `Servicio "${seleccionado.value.nombre}" dado de baja correctamente.`
+    modalVisible.value = false
+    await cargar()
+  } catch {
+    error.value = 'Error al dar de baja el servicio.'
+  } finally {
+    procesando.value = false
+  }
+}
+
 onMounted(cargar)
 </script>
 
@@ -52,6 +80,11 @@ onMounted(cargar)
         <small class="text-muted">{{ filtrados.length }} resultado(s)</small>
       </div>
       <router-link to="/alta-paquete" class="btn btn-custom">+ Nuevo servicio</router-link>
+    </div>
+
+    <div v-if="exito" class="alert alert-success alert-dismissible">
+      {{ exito }}
+      <button type="button" class="btn-close" @click="exito = ''"></button>
     </div>
 
     <div class="filtros-bar mb-4">
@@ -89,6 +122,7 @@ onMounted(cargar)
               <th>Descripción</th>
               <th>Precio base</th>
               <th>Estado</th>
+              <th class="text-end">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -106,11 +140,34 @@ onMounted(cargar)
                   {{ s.activo === false ? 'Inactivo' : 'Activo' }}
                 </span>
               </td>
+              <td v-if="s._tipo === 'Adicional'" class="text-end">
+                <router-link
+                  :to="`/editar-servicio/${s._id}`"
+                  class="btn btn-sm btn-outline-secondary me-1"
+                  title="Editar"
+                >✏️</router-link>
+                <button
+                  v-if="s.activo !== false"
+                  class="btn btn-sm btn-outline-danger"
+                  title="Dar de baja"
+                  @click="pedirBaja(s)"
+                >🗑</button>
+              </td>
+              <td v-else class="text-muted text-end">—</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
+
+    <ConfirmModal
+      :show="modalVisible"
+      titulo="Baja lógica de servicio"
+      :mensaje="`¿Dar de baja el servicio &quot;${seleccionado?.nombre}&quot;? El registro se conserva pero quedará inactivo.`"
+      :cargando="procesando"
+      @confirmar="confirmarBaja"
+      @cancelar="modalVisible = false"
+    />
   </div>
 </template>
 

@@ -17,6 +17,31 @@ export class AdministrativosService {
     return `${nombre} ${apaterno} ${amaterno}`.trim()
   }
 
+  calcularProximaFecha(fechaBase, periodicidad) {
+    const segundos = fechaBase?.seconds ?? fechaBase?._seconds
+    const fecha = fechaBase?.toDate
+      ? fechaBase.toDate()
+      : segundos
+        ? new Date(segundos * 1000)
+        : new Date(fechaBase)
+    if (Number.isNaN(fecha.getTime())) {
+      throw new ApiError(400, 'Fecha de ruta invalida')
+    }
+
+    const siguiente = new Date(fecha)
+    if (periodicidad === 'semanal') {
+      siguiente.setDate(siguiente.getDate() + 7)
+    } else if (periodicidad === 'quincenal') {
+      siguiente.setDate(siguiente.getDate() + 14)
+    } else if (periodicidad === 'mensual') {
+      siguiente.setMonth(siguiente.getMonth() + 1)
+    } else {
+      throw new ApiError(400, 'Periodicidad de ruta invalida')
+    }
+
+    return siguiente.toISOString().slice(0, 10)
+  }
+
   async listarClientesActivos() {
     return await this.repo.listarClientesActivos()
   }
@@ -27,6 +52,52 @@ export class AdministrativosService {
 
   async listarProductosActivos() {
     return await this.repo.listarProductosActivos()
+  }
+
+  async listarRutasCobro() {
+    return await this.repo.listarRutasCobro()
+  }
+
+  async listarRutasCobroValidacion() {
+    return await this.repo.listarRutasCobroValidacion()
+  }
+
+  async obtenerRutaCobroValidacion(rutaId) {
+    const ruta = await this.repo.obtenerRutaCobroValidacion(rutaId)
+    if (!ruta) {
+      throw new ApiError(404, 'Ruta de cobro no encontrada')
+    }
+    return ruta
+  }
+
+  async obtenerDetallesCobro(rutaCobroId) {
+    const rutaCobro = await this.repo.findRutaCobroById(rutaCobroId)
+    if (!rutaCobro) {
+      throw new ApiError(404, 'Ruta de cobro no encontrada')
+    }
+    const detalles = await this.repo.obtenerDetallesCobro(rutaCobroId)
+    return detalles
+  }
+
+  async obtenerInfoContratos(){
+    return await this.repo.obtenerInfoContratos()
+  }
+
+  async listarSolicitudesBeneficiarios() {
+    return await this.repo.listarSolicitudesBeneficiarios()
+  }
+
+  async resumenSolicitudesBeneficiarios() {
+    return await this.repo.resumenSolicitudesBeneficiarios()
+  }
+
+  async resolverSolicitudBeneficiario(solicitudId, data, usuarioId) {
+    return await this.repo.resolverSolicitudBeneficiario({
+      solicitudId,
+      accion: data.accion,
+      comentarioAdmin: data.comentario_admin ?? '',
+      usuarioId
+    })
   }
 
   /* Genera el siguiente num_documento con formato XX-XXXXX.
@@ -122,14 +193,62 @@ export class AdministrativosService {
     return { ...this.sanitizeUsuario(nuevoUsuario), ...infoCobrador }
   }
 
+  async obtenerCliente(id) {
+    const cliente = await this.repo.obtenerClienteEdicion(id)
+    if (!cliente) {
+      throw new ApiError(404, 'Cliente no encontrado')
+    }
+    return cliente
+  }
+
+  async actualizarCliente(id, data) {
+    const cliente = await this.repo.findClienteById(id)
+    if (!cliente) {
+      throw new ApiError(404, 'Cliente no encontrado')
+    }
+    return await this.repo.actualizarCliente(id, data)
+  }
+
+  async obtenerCobrador(id) {
+    const cobrador = await this.repo.obtenerCobradorEdicion(id)
+    if (!cobrador) {
+      throw new ApiError(404, 'Cobrador no encontrado')
+    }
+    return cobrador
+  }
+
+  async obtenerServicio(id) {
+    const servicio = await this.repo.obtenerServicioEdicion(id)
+    if (!servicio) {
+      throw new ApiError(404, 'Servicio no encontrado')
+    }
+    return servicio
+  }
+
+  async actualizarServicio(id, data) {
+    const servicio = await this.repo.findAdicionalById(id)
+    if (!servicio) {
+      throw new ApiError(404, 'Servicio no encontrado')
+    }
+    return await this.repo.actualizarServicio(id, data)
+  }
+
+  async actualizarCobrador(id, data) {
+    const cobrador = await this.repo.findCobradorById(id)
+    if (!cobrador) {
+      throw new ApiError(404, 'Cobrador no encontrado')
+    }
+    return await this.repo.actualizarCobrador(id, data)
+  }
+
   async crearNuevoContrato(data) {
-    
     if (!data.clientes_id && !data.nuevo_cliente) {
       throw new ApiError(400, 'Debe proporcionar clientes_id o nuevo_cliente')
     }
     if (data.nuevo_cliente) {
       const nuevoCliente = await this.crearNuevoCliente(data.nuevo_cliente)
-      data.clientes_id = nuevoCliente.id
+      data.clientes_id = nuevoCliente.cliente_id
+      console.log('Nuevo cliente creado con ID:', data.clientes_id)
       delete data.nuevo_cliente
     }
 
@@ -150,13 +269,13 @@ export class AdministrativosService {
     delete data.direccion_cobro
 
     if (adicionalesInfo && adicionalesInfo.length > 0) {
-      for (const adicionalesInfo of data.adicionales) {
-        const adicionalSnap = await this.repo.findAdicionalById(adicionalesInfo.adicional_id)
+      for (const adicional of adicionalesInfo) {
+        const adicionalSnap = await this.repo.findAdicionalById(adicional.adicional_id)
         if (!adicionalSnap) {
           throw new ApiError(404, 'Adicional no encontrado, no se puede crear contrato')
         }
 
-        let precioAdicional = adicionalesInfo.precio
+        let precioAdicional = adicional.precio
         precioFinal += precioAdicional
       }
     }
@@ -200,15 +319,15 @@ export class AdministrativosService {
   
 
   async crearPaqueteAdicional(data) {
-    if ((data.hasOwnProperty('paquete') == false && data.hasOwnProperty('adicional') == false) && (data.hasOwnProperty('paquete_id') == false && data.hasOwnProperty('adicional_id') == false )) {
+    const paquete_id = data.paquete_id ?? data.paquetes_id
+    const adicional_id = data.adicional_id ?? data.adicionales_id
+
+    if (!data.paquete && !data.adicional && !paquete_id && !adicional_id) {
       throw new ApiError(400, 'Datos de paquete y/o adicional son requeridos')
     }
 
-    if(data.hasOwnProperty('paquete_id') && data.hasOwnProperty('adicional_id')) {
-      const { paquete_id, adicional_id } = data
-
+    if(paquete_id && adicional_id) {
       const paqueteSnap = await this.repo.findPaqueteById(paquete_id)
-      console.log('paqueteSnap:', paqueteSnap)
       if (!paqueteSnap) {
         throw new ApiError(404, 'Paquete no encontrado, no se puede crear promo')
       }
@@ -332,11 +451,86 @@ export class AdministrativosService {
     const rutaCobro = {
       ...data,
       estado: 'asignada',
+      ciclo_actual: 1,
+      proxima_fecha: this.calcularProximaFecha(data.fecha_inicio, data.periodicidad),
       activo: data.activo ?? true,
       fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
       fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
     }
-    return await this.repo.crearRutaCobro(rutaCobro, detallesInfo)
+
+    const createdRutaCobro = await this.repo.crearRutaCobro(rutaCobro)
+
+    await this.repo.asignarDetallesRutaCobro(createdRutaCobro.ruta_cobros_id, detallesInfo)
+    return createdRutaCobro
+  }
+
+  async nuevoPago(data) {
+    const pago = {
+      contratos_id: data.contratos_id,
+      monto: data.monto,
+      estatus: 'validado',
+      fechaPago: admin.firestore.FieldValue.serverTimestamp(),
+      fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp()
+    }
+
+    const nuevoPago = await this.repo.newPago(pago)
+    return { nuevoPago }
+  }
+
+  async listarPagos() {
+    return await this.repo.listarPagos()
+  }
+
+  async obtenerPago(id) {
+    const pago = await this.repo.obtenerPago(id)
+    if (!pago) {
+      throw new ApiError(404, 'Pago no encontrado')
+    }
+    return pago
+  }
+
+  async validarPago(id, estatus, usuarioId) {
+    return await this.repo.validarPago({
+      pagoId: id,
+      estatus,
+      usuarioId
+    })
+  }
+
+  async revisarVisitaRuta(rutaId, detalleId, payload, usuarioId) {
+    return await this.repo.revisarVisitaRuta({
+      rutaId,
+      detalleId,
+      estatusPago: payload.estatus_pago,
+      usuarioId
+    })
+  }
+
+  async terminarValidacionRuta(rutaId, usuarioId) {
+    return await this.repo.terminarValidacionRuta({
+      rutaId,
+      usuarioId,
+      calcularProximaFecha: this.calcularProximaFecha.bind(this)
+    })
+  }
+
+  async obtenerHistorialCliente(clienteID) {
+    console.log('Procesando historial del cliente:', clienteID)
+
+    const listaPagos = await this.repo.getPagosByCliente(clienteID)
+
+    const totalPagado = listaPagos.reduce((acumulado, pago) => acumulado + (pago.monto || 0), 0)
+
+    return {
+        clienteID,
+        resumen: {
+            cantidadPagos: listaPagos.length,
+            montoTotalHistorico: totalPagado,
+            ultimoPago: listaPagos[0] ? listaPagos[0].fechaPago : null
+        },
+        pagos: listaPagos
+    }
   }
 
   async darBajaCliente(clienteId) {

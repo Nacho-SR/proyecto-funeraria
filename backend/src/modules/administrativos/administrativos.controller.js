@@ -2,8 +2,18 @@
   Controlador para la gestión de administrativos, incluyendo el registro de usuarios.
 */
 import { createClientesSchema } from '../clientes/clientes.schema.js'
-import { nuevoClienteSchema, nuevoCobradorSchema, createPaqueteAdicionalSchema, createContratoSchema } from './asignaciones.schema.js'
-import { createCobradoresSchema } from '../cobradores/cobradores.schema.js'
+import { nuevoClienteSchema,
+          nuevoCobradorSchema,
+          createPaqueteAdicionalSchema,
+          createContratoSchema,
+          nuevaRutaCobroSchema,
+          revisarVisitaRutaSchema,
+          resolverSolicitudBeneficiarioSchema,
+          editarClienteSchema,
+          editarCobradorSchema,
+          editarServicioSchema
+        } from './asignaciones.schema.js'
+import { nuevoPagoSchema, validarPagoSchema } from '../pagos/pagos.schema.js'
 import { AdministrativosService } from './administrativos.service.js'
 import { ApiError } from '../../shared/utils/apiError.js'
 
@@ -24,6 +34,27 @@ export const listarProductosActivos = async (req, res) => {
   res.status(200).json({ productosActivos })
 }
 
+export const obtenerDetallesCobro = async (req, res) => {
+  const rutaCobroId = req.params.id
+  const detalles = await service.obtenerDetallesCobro(rutaCobroId)
+  res.status(200).json({ detalles })
+}
+
+export const obtenerInfoContratos = async (req, res) => {
+  const contratos = await service.obtenerInfoContratos()
+  res.status(200).json({ contratos })
+}
+
+export const listarSolicitudesBeneficiarios = async (req, res) => {
+  const solicitudes = await service.listarSolicitudesBeneficiarios()
+  res.status(200).json({ solicitudes })
+}
+
+export const resumenSolicitudesBeneficiarios = async (req, res) => {
+  const resumen = await service.resumenSolicitudesBeneficiarios()
+  res.status(200).json({ resumen })
+}
+
 export const crearCliente = async (req, res) => {
   const doc = nuevoClienteSchema.parse(req.body)
   const created = await service.crearNuevoCliente(doc)
@@ -34,6 +65,39 @@ export const crearCobrador = async (req, res) => {
   const doc = nuevoCobradorSchema.parse(req.body)
   const created = await service.crearNuevoCobrador(doc)
   res.status(201).json(created)
+}
+
+export const obtenerCliente = async (req, res) => {
+  const cliente = await service.obtenerCliente(req.params.id)
+  res.status(200).json(cliente)
+}
+
+export const actualizarCliente = async (req, res) => {
+  const doc = editarClienteSchema.parse(req.body)
+  const cliente = await service.actualizarCliente(req.params.id, doc)
+  res.status(200).json(cliente)
+}
+
+export const obtenerCobrador = async (req, res) => {
+  const cobrador = await service.obtenerCobrador(req.params.id)
+  res.status(200).json(cobrador)
+}
+
+export const obtenerServicio = async (req, res) => {
+  const servicio = await service.obtenerServicio(req.params.id)
+  res.status(200).json(servicio)
+}
+
+export const actualizarServicio = async (req, res) => {
+  const doc = editarServicioSchema.parse(req.body)
+  const servicio = await service.actualizarServicio(req.params.id, doc)
+  res.status(200).json(servicio)
+}
+
+export const actualizarCobrador = async (req, res) => {
+  const doc = editarCobradorSchema.parse(req.body)
+  const cobrador = await service.actualizarCobrador(req.params.id, doc)
+  res.status(200).json(cobrador)
 }
 
 export const crearContrato = async (req, res) => {
@@ -52,6 +116,66 @@ export const crearRutaCobro = async (req, res) => {
   const doc = nuevaRutaCobroSchema.parse(req.body)
   const created = await service.crearRutaCobro(doc)
   res.status(201).json(created)
+}
+
+export const nuevoPago = async (req, res) => {
+    const doc = nuevoPagoSchema.parse(req.body)
+    const created = await service.nuevoPago(doc)
+    res.status(201).json(created)
+}
+
+export const listarPagos = async (req, res) => {
+  const pagos = await service.listarPagos()
+  res.status(200).json({ pagos })
+}
+
+export const obtenerPago = async (req, res) => {
+  const pago = await service.obtenerPago(req.params.id)
+  res.status(200).json({ pago })
+}
+
+export const validarPago = async (req, res) => {
+  const payload = validarPagoSchema.parse(req.body)
+  const resultado = await service.validarPago(req.params.id, payload.estatus, req.user.usuarios_id)
+  res.status(200).json(resultado)
+}
+
+export const obtenerPagosPorCliente = async (req, res) => {
+    const { clienteID } = req.params
+    const historial = await service.obtenerHistorialCliente(clienteID)
+    res.status(200).json(historial)
+}
+
+export const listarRutasCobro = async (req, res) => {
+  const rutas = await service.listarRutasCobro()
+  res.status(200).json({ rutas })
+}
+
+export const listarRutasCobroValidacion = async (req, res) => {
+  const rutas = await service.listarRutasCobroValidacion()
+  res.status(200).json({ rutas })
+}
+
+export const obtenerRutaCobroValidacion = async (req, res) => {
+  const ruta = await service.obtenerRutaCobroValidacion(req.params.id)
+  res.status(200).json({ ruta })
+}
+
+export const revisarVisitaRuta = async (req, res) => {
+  const payload = revisarVisitaRutaSchema.parse(req.body)
+  const resultado = await service.revisarVisitaRuta(req.params.id, req.params.detalleId, payload, req.user.usuarios_id)
+  res.status(200).json(resultado)
+}
+
+export const terminarValidacionRuta = async (req, res) => {
+  const resultado = await service.terminarValidacionRuta(req.params.id, req.user.usuarios_id)
+  res.status(200).json(resultado)
+}
+
+export const resolverSolicitudBeneficiario = async (req, res) => {
+  const payload = resolverSolicitudBeneficiarioSchema.parse(req.body)
+  const resultado = await service.resolverSolicitudBeneficiario(req.params.id, payload, req.user.usuarios_id)
+  res.status(200).json(resultado)
 }
 
 export const darBajaCliente = async (req, res) => {

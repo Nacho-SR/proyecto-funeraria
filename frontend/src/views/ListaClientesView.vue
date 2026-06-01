@@ -1,12 +1,19 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import api from '@/services/api'
+import { clienteService } from '@/services/cliente.service'
+import ConfirmModal from '@/components/ConfirmModal.vue'
 
 const todos = ref([])
 const cargando = ref(false)
 const error = ref('')
+const exito = ref('')
 const busqueda = ref('')
 const filtroEstado = ref('todos')
+
+const modalVisible = ref(false)
+const seleccionado = ref(null)
+const procesando = ref(false)
 
 async function cargar() {
   cargando.value = true
@@ -36,6 +43,27 @@ const filtrados = computed(() => {
   return lista
 })
 
+function pedirBaja(cliente, usuario) {
+  seleccionado.value = { cliente, usuario }
+  modalVisible.value = true
+}
+
+async function confirmarBaja() {
+  procesando.value = true
+  exito.value = ''
+  error.value = ''
+  try {
+    await clienteService.eliminar(seleccionado.value.cliente.cliente_id)
+    exito.value = `Cliente "${seleccionado.value.usuario?.nombre} ${seleccionado.value.usuario?.apaterno}" dado de baja correctamente.`
+    modalVisible.value = false
+    await cargar()
+  } catch {
+    error.value = 'Error al dar de baja el cliente.'
+  } finally {
+    procesando.value = false
+  }
+}
+
 onMounted(cargar)
 </script>
 
@@ -47,6 +75,11 @@ onMounted(cargar)
         <small class="text-muted">{{ filtrados.length }} resultado(s)</small>
       </div>
       <router-link to="/alta-cliente" class="btn btn-custom">+ Nuevo cliente</router-link>
+    </div>
+
+    <div v-if="exito" class="alert alert-success alert-dismissible">
+      {{ exito }}
+      <button type="button" class="btn-close" @click="exito = ''"></button>
     </div>
 
     <div class="filtros-bar mb-4">
@@ -94,13 +127,26 @@ onMounted(cargar)
               </td>
               <td class="text-end">
                 <router-link :to="`/editar-cliente/${cliente.cliente_id}`" class="btn btn-sm btn-outline-secondary me-1">✏️</router-link>
-                <router-link to="/baja-cliente" class="btn btn-sm btn-outline-danger" v-if="cliente.activo !== false">🗑</router-link>
+                <button
+                  v-if="cliente.activo !== false"
+                  class="btn btn-sm btn-outline-danger"
+                  @click="pedirBaja(cliente, usuario)"
+                >🗑</button>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
+
+    <ConfirmModal
+      :show="modalVisible"
+      titulo="Baja lógica de cliente"
+      :mensaje="`¿Dar de baja al cliente &quot;${seleccionado?.usuario?.nombre} ${seleccionado?.usuario?.apaterno}&quot;? El registro se conserva pero quedará inactivo.`"
+      :cargando="procesando"
+      @confirmar="confirmarBaja"
+      @cancelar="modalVisible = false"
+    />
   </div>
 </template>
 

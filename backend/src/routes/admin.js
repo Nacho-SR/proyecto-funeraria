@@ -1,7 +1,8 @@
 import { Router } from 'express'
 import { z } from 'zod'
-import { env } from '../config/env.js'
 import { ensureAdminUser } from '../modules/admin.js'
+import { authenticate } from '../shared/middleware/auth.middleware.js'
+import { requireRole } from '../shared/middleware/requireRole.middleware.js'
 
 const router = Router()
 
@@ -10,16 +11,8 @@ const CreateAdminSchema = z.object({
   password: z.string().min(6),
 })
 
-router.post('/create', async (req, res, next) => {
+router.post('/create', authenticate, requireRole('admin'), async (req, res, next) => {
   try {
-    const masterKey = req.header('x-master-key')
-    console.log('masterKey recibido:', masterKey)
-    console.log('masterKey esperado:', env.MASTER_ADMIN_KEY)
-
-    if (!masterKey || masterKey !== env.MASTER_ADMIN_KEY) {
-      return res.status(401).json({ message: 'No autorizado' })
-    }
-
     const parsed = CreateAdminSchema.safeParse(req.body)
     if (!parsed.success) {
       return res.status(400).json({
@@ -37,7 +30,7 @@ router.post('/create', async (req, res, next) => {
     return res.status(201).json({
       message: 'Usuario admin creado',
       email: result.email,
-      role: 'admin',
+      rol: 'admin',
     })
   } catch (error) {
     return next(error)

@@ -13,7 +13,7 @@ export const clienteService = {
     return api.post(RESOURCE+'/alta-cliente', payload)
   },
   actualizar(id, payload) {
-    return api.put(`/clientes/${id}`, payload)
+    return api.put(`${RESOURCE}/clientes/${id}`, payload)
   },
   eliminar(id) {
     return api.put(`${RESOURCE}/baja-cliente/${id}`)

@@ -18,6 +18,12 @@ const form = reactive({
 const error = ref('')
 const guardando = ref(false)
 
+function dashboardPorRol(rol) {
+  if (rol === 'admin') return 'dashboard'
+  if (rol === 'cobrador') return 'dashboard-cobrador'
+  return 'dashboard-cliente'
+}
+
 async function guardar() {
   error.value = ''
 
@@ -44,7 +50,7 @@ async function guardar() {
     const usuarioActualizado = { ...usuario.value, perfilCompleto: true, ...form }
     login(usuarioActualizado, token.value)
 
-    router.push({ name: 'dashboard-usuario' })
+    router.push({ name: dashboardPorRol(usuarioActualizado.rol) })
   } catch (err) {
     error.value = err.response?.data?.message || 'Error al guardar el perfil.'
   } finally {

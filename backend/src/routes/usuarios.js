@@ -1,7 +1,9 @@
 import { Router } from 'express'
 import { z } from 'zod'
 import { db, admin } from '../config/firebase.js'
-import { hashPassword, normalizeEmail, USERS_COLLECTION } from '../modules/auth.js'
+import { hashPassword, normalizeEmail, normalizeUser, publicUser, USERS_COLLECTION, verifyPassword } from '../modules/auth.js'
+import { authenticate } from '../shared/middleware/auth.middleware.js'
+import { requireRole } from '../shared/middleware/requireRole.middleware.js'
 
 const router = Router()
 
@@ -9,7 +11,7 @@ const CreateUserSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   nombre: z.string().min(2),
-  role: z.enum(['cobrador', 'cliente']),
+  rol: z.enum(['cobrador', 'cliente']),
 })
 
 const PerfilSchema = z.object({
@@ -20,8 +22,31 @@ const PerfilSchema = z.object({
   municipio: z.string().min(1),
 })
 
+const UpdatePerfilSchema = z.object({
+  nombre: z.string().trim().min(2),
+  email: z.string().email(),
+  passwordActual: z.string().optional().default(''),
+  passwordNuevo: z.string().optional().default('')
+}).superRefine((data, ctx) => {
+  if (data.passwordNuevo && data.passwordNuevo.length < 6) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['passwordNuevo'],
+      message: 'La nueva contrasena debe tener al menos 6 caracteres'
+    })
+  }
+
+  if (data.passwordNuevo && !data.passwordActual) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['passwordActual'],
+      message: 'Indica la contrasena actual'
+    })
+  }
+})
+
 // POST /api/usuarios/create
-router.post('/create', async (req, res, next) => {
+router.post('/create', authenticate, requireRole('admin'), async (req, res, next) => {
   try {
     const parsed = CreateUserSchema.safeParse(req.body)
     if (!parsed.success) {
@@ -31,31 +56,36 @@ router.post('/create', async (req, res, next) => {
       })
     }
 
-    const { email, password, nombre, role } = parsed.data
+    const { email, password, nombre, rol } = parsed.data
     const normalizedEmail = normalizeEmail(email)
 
-    const userRef = db.collection(USERS_COLLECTION).doc(normalizedEmail)
-    const userSnapshot = await userRef.get()
+    const userSnapshot = await db.collection(USERS_COLLECTION)
+      .where('email', '==', normalizedEmail)
+      .limit(1)
+      .get()
 
-    if (userSnapshot.exists) {
+    if (!userSnapshot.empty) {
       return res.status(409).json({ message: 'El usuario ya existe' })
     }
 
+    const userRef = db.collection(USERS_COLLECTION).doc()
     const passwordHash = await hashPassword(password)
 
     await userRef.set({
       email: normalizedEmail,
       nombre,
-      role,
+      rol,
+      activo: true,
       passwordHash,
       perfilCompleto: false,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      fecha_creacion: admin.firestore.FieldValue.serverTimestamp(),
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp(),
     })
 
     return res.status(201).json({
       message: 'Usuario creado correctamente',
       email: normalizedEmail,
-      role,
+      rol,
     })
   } catch (error) {
     return next(error)
@@ -63,14 +93,8 @@ router.post('/create', async (req, res, next) => {
 })
 
 // POST /api/usuarios/perfil
-router.post('/perfil', async (req, res, next) => {
+router.post('/perfil', authenticate, async (req, res, next) => {
   try {
-    // Obtener el token del header
-    const authHeader = req.headers.authorization
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'No autorizado' })
-    }
-
     const parsed = PerfilSchema.safeParse(req.body)
     if (!parsed.success) {
       return res.status(400).json({
@@ -79,14 +103,7 @@ router.post('/perfil', async (req, res, next) => {
       })
     }
 
-    // Decodificar el token para obtener el email (sub)
-    const jwt = await import('jsonwebtoken')
-    const token = authHeader.split(' ')[1]
-    const { env } = await import('../config/env.js')
-    const decoded = jwt.default.verify(token, env.JWT_SECRET)
-
-    // El sub es el email (id del documento en Firestore)
-    const userRef = db.collection(USERS_COLLECTION).doc(decoded.sub)
+    const userRef = db.collection(USERS_COLLECTION).doc(req.user.sub)
     const userSnapshot = await userRef.get()
 
     if (!userSnapshot.exists) {
@@ -96,10 +113,69 @@ router.post('/perfil', async (req, res, next) => {
     await userRef.update({
       ...parsed.data,
       perfilCompleto: true,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp(),
     })
 
     return res.status(200).json({ message: 'Perfil actualizado correctamente' })
+  } catch (error) {
+    return next(error)
+  }
+})
+
+// PUT /api/usuarios/perfil
+router.put('/perfil', authenticate, async (req, res, next) => {
+  try {
+    const parsed = UpdatePerfilSchema.safeParse(req.body)
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: 'Datos invalidos',
+        errors: parsed.error.flatten(),
+      })
+    }
+
+    const { nombre, email, passwordActual, passwordNuevo } = parsed.data
+    const normalizedEmail = normalizeEmail(email)
+    const userRef = db.collection(USERS_COLLECTION).doc(req.user.usuarios_id)
+    const userSnapshot = await userRef.get()
+
+    if (!userSnapshot.exists) {
+      return res.status(404).json({ message: 'Usuario no encontrado' })
+    }
+
+    const usuarioActual = { id: userSnapshot.id, ...userSnapshot.data() }
+
+    if (normalizedEmail !== normalizeEmail(usuarioActual.email)) {
+      const existente = await db.collection(USERS_COLLECTION)
+        .where('email', '==', normalizedEmail)
+        .limit(1)
+        .get()
+
+      if (!existente.empty && existente.docs[0].id !== userSnapshot.id) {
+        return res.status(409).json({ message: 'El correo ya esta en uso' })
+      }
+    }
+
+    const update = {
+      nombre,
+      email: normalizedEmail,
+      fecha_modificacion: admin.firestore.FieldValue.serverTimestamp(),
+    }
+
+    if (passwordNuevo) {
+      const passwordValido = await verifyPassword(passwordActual, usuarioActual.passwordHash)
+      if (!passwordValido) {
+        return res.status(401).json({ message: 'La contrasena actual no es correcta' })
+      }
+      update.passwordHash = await hashPassword(passwordNuevo)
+    }
+
+    await userRef.update(update)
+
+    const actualizado = await userRef.get()
+    return res.status(200).json({
+      message: 'Perfil actualizado correctamente',
+      usuario: publicUser(normalizeUser({ id: actualizado.id, ...actualizado.data() }))
+    })
   } catch (error) {
     return next(error)
   }
