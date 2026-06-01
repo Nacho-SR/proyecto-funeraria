@@ -1,26 +1,26 @@
 import api from './api'
 
-const RESOURCE = '/paquetes'
+const RESOURCE = '/administrativos'
 
 export const paqueteService = {
-  listar() {
-    return api.get(RESOURCE)
+  async listar() {
+    const res = await api.get(RESOURCE + '/productos-activos')
+    const data = res.data?.productosActivos ?? res.data
+    return { data: data?.paquetes ?? [] }
   },
   obtener(id) {
-    return api.get(`${RESOURCE}/${id}`)
+    return api.get(`${RESOURCE}/servicios/${id}`)
   },
   crear(payload) {
-    // payload incluye { nombre, descripcion, precioBase, adicionales: [ids] }
-    return api.post(RESOURCE, payload)
+    return api.post(RESOURCE + '/alta-paquete-adicional', payload)
   },
   actualizar(id, payload) {
-    return api.put(`${RESOURCE}/${id}`, payload)
+    return api.put(`${RESOURCE}/servicios/${id}`, payload)
   },
   eliminar(id) {
-    return api.delete(`${RESOURCE}/${id}`)
+    return api.delete(`${RESOURCE}/servicios/${id}`)
   },
-  // Para llenar el selector de adicionales en el form
   listarAdicionales() {
-    return api.get('/adicionales')
+    return api.get(RESOURCE + '/productos-activos')
   },
 }
