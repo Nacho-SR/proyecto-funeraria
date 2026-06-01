@@ -42,7 +42,6 @@ const routes = [
   { path: '/alta-paquete', name: 'alta-paquete', component: () => import('../views/AltaPaqueteView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/alta-cobrador', name: 'alta-cobrador', component: () => import('../views/AltaCobradorView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/alta-contrato', name: 'alta-contrato', component: () => import('../views/AltaContratoView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
-  { path: '/alta-contrato-stepper', name: 'alta-contrato-stepper', component: () => import('../views/AltaContratoStepperView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   { path: '/captura-pago', name: 'captura-pago', component: () => import('../views/CapturaPagoView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
   // Edits (admin)
   { path: '/editar-cliente/:id', name: 'editar-cliente', component: () => import('../views/EditarClienteView.vue'), meta: { requiresAuth: true, rol: 'admin' } },
