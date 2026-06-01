@@ -89,12 +89,7 @@ const adicionalesSeleccionados = computed(() =>
       if (!adicional) return null
       const promo = promoParaAdicional(id)
       const precio = Number(promo?.precio_especial ?? adicional.precio ?? 0)
-      return {
-        ...adicional,
-        adicional_id: id,
-        precio,
-        promo
-      }
+      return { ...adicional, adicional_id: id, precio, promo }
     })
     .filter(Boolean)
 )
@@ -102,6 +97,11 @@ const adicionalesSeleccionados = computed(() =>
 const precioBase = computed(() => Number(paqueteSeleccionado.value?.precio_base ?? 0))
 const totalAdicionales = computed(() => adicionalesSeleccionados.value.reduce((total, adicional) => total + Number(adicional.precio ?? 0), 0))
 const totalContrato = computed(() => precioBase.value + totalAdicionales.value)
+
+// Progreso de la línea animada
+const progreso = computed(() =>
+  (pasoActual.value / (pasos.length - 1)) * 100
+)
 
 function clienteNombre(item) {
   const usuario = item?.usuario
@@ -138,14 +138,7 @@ function alternarAdicional(id) {
 }
 
 function beneficiarioVacio() {
-  return {
-    nombre: '',
-    apaterno: '',
-    amaterno: '',
-    parentesco: '',
-    telefono: '',
-    direccion: ''
-  }
+  return { nombre: '', apaterno: '', amaterno: '', parentesco: '', telefono: '', direccion: '' }
 }
 
 function agregarBeneficiario() {
@@ -173,7 +166,6 @@ function usarClienteComoBeneficiario(index) {
     destino.direccion = [cliente.calle, cliente.num_casa, cliente.colonia].filter(Boolean).join(', ')
     return
   }
-
   destino.nombre = form.usuario.nombre
   destino.apaterno = form.usuario.apaterno
   destino.amaterno = form.usuario.amaterno
@@ -190,7 +182,6 @@ function usarDireccionCliente() {
     form.direccion_cobro.num_casa = cliente.num_casa ?? ''
     return
   }
-
   form.direccion_cobro.calle = form.cliente.calle
   form.direccion_cobro.colonia = form.cliente.colonia
   form.direccion_cobro.num_casa = form.cliente.num_casa
@@ -198,7 +189,6 @@ function usarDireccionCliente() {
 
 function validarPasoActual() {
   const nuevosErrores = {}
-
   if (pasoActual.value === 0) {
     if (form.modo_cliente === 'existente') {
       if (!form.clientes_id) nuevosErrores.clientes_id = 'Selecciona un cliente.'
@@ -214,13 +204,11 @@ function validarPasoActual() {
       validarTexto(nuevosErrores, 'cliente.num_casa', form.cliente.num_casa, 1, 'Numero de casa')
     }
   }
-
   if (pasoActual.value === 1) {
     if (!form.paquetes_id) nuevosErrores.paquetes_id = 'Selecciona un paquete.'
     if (!form.fecha_inicio) nuevosErrores.fecha_inicio = 'Selecciona la fecha de inicio.'
     if (!form.frecuencia_pago) nuevosErrores.frecuencia_pago = 'Selecciona la frecuencia de pago.'
   }
-
   if (pasoActual.value === 2) {
     if (form.beneficiarios.length < 1 || form.beneficiarios.length > 3) {
       nuevosErrores.beneficiarios = 'Registra de 1 a 3 beneficiarios.'
@@ -234,7 +222,6 @@ function validarPasoActual() {
       validarTexto(nuevosErrores, `beneficiario.${index}.direccion`, beneficiario.direccion, 4, 'Direccion')
     })
   }
-
   if (pasoActual.value === 3) {
     validarTexto(nuevosErrores, 'direccion_cobro.calle', form.direccion_cobro.calle, 3, 'Calle')
     validarTexto(nuevosErrores, 'direccion_cobro.colonia', form.direccion_cobro.colonia, 3, 'Colonia')
@@ -242,7 +229,6 @@ function validarPasoActual() {
     validarTexto(nuevosErrores, 'direccion_cobro.referencia', form.direccion_cobro.referencia, 5, 'Referencia')
     validarTexto(nuevosErrores, 'direccion_cobro.horario_atencion', form.direccion_cobro.horario_atencion, 5, 'Horario de atencion')
   }
-
   errores.value = nuevosErrores
   return Object.keys(nuevosErrores).length === 0
 }
@@ -270,14 +256,13 @@ function payloadContrato() {
     paquetes_id: form.paquetes_id,
     fecha_inicio: form.fecha_inicio,
     frecuencia_pago: form.frecuencia_pago,
-    beneficiarios: form.beneficiarios.map(beneficiario => ({ ...beneficiario })),
+    beneficiarios: form.beneficiarios.map(b => ({ ...b })),
     direccion_cobro: { ...form.direccion_cobro },
-    adicionales: adicionalesSeleccionados.value.map(adicional => ({
-      adicional_id: adicional.adicional_id,
-      precio: Number(adicional.precio)
+    adicionales: adicionalesSeleccionados.value.map(a => ({
+      adicional_id: a.adicional_id,
+      precio: Number(a.precio)
     }))
   }
-
   if (form.modo_cliente === 'existente') {
     payload.clientes_id = form.clientes_id
   } else {
@@ -286,19 +271,16 @@ function payloadContrato() {
       cliente: { ...form.cliente }
     }
   }
-
   return payload
 }
 
 async function guardar() {
   mensajeError.value = ''
   mensajeExito.value = ''
-
   for (let i = 0; i < pasos.length - 1; i += 1) {
     pasoActual.value = i
     if (!validarPasoActual()) return
   }
-
   pasoActual.value = pasos.length - 1
   enviando.value = true
   try {
@@ -336,10 +318,7 @@ function cancelar() {
 }
 
 function formatoMoneda(valor) {
-  return Number(valor ?? 0).toLocaleString('es-MX', {
-    style: 'currency',
-    currency: 'MXN'
-  })
+  return Number(valor ?? 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })
 }
 </script>
 
@@ -352,20 +331,31 @@ function formatoMoneda(valor) {
     <div v-if="mensajeExito" class="alert alert-success">{{ mensajeExito }}</div>
     <div v-if="mensajeError" class="alert alert-danger">{{ mensajeError }}</div>
 
-    <div class="stepper mb-4">
-      <button
-        v-for="(paso, index) in pasos"
-        :key="paso"
-        type="button"
-        class="step"
-        :class="{ activo: pasoActual === index, completo: pasoActual > index }"
-        @click="pasoActual = index"
-      >
-        <span>{{ index + 1 }}</span>
-        {{ paso }}
-      </button>
+    <!-- ── STEPPER VISUAL (nodos + línea animada) ── -->
+    <div class="stepper-wrap mb-5">
+      <div class="stepper-line-bg"></div>
+      <div class="stepper-line-fill" :style="{ width: progreso + '%' }"></div>
+      <div class="stepper-nodes">
+        <div v-for="(paso, i) in pasos" :key="i" class="stepper-node">
+          <div
+            class="node-circle"
+            :class="{
+              'node-completado': i < pasoActual,
+              'node-activo':    i === pasoActual,
+              'node-inactivo':  i > pasoActual,
+            }"
+          >
+            <svg v-if="i < pasoActual" width="16" height="12" viewBox="0 0 14 11" fill="none">
+              <path d="M1 5.5L5 9.5L13 1.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span v-else>{{ i + 1 }}</span>
+          </div>
+          <span class="node-label" :class="{ 'text-muted': i > pasoActual }">{{ paso }}</span>
+        </div>
+      </div>
     </div>
 
+    <!-- ── PASO 0: Cliente ── -->
     <section v-if="pasoActual === 0" class="step-panel">
       <h5 class="fw-bold mb-3">Cliente titular</h5>
       <div class="btn-group mb-3">
@@ -439,6 +429,7 @@ function formatoMoneda(valor) {
       </div>
     </section>
 
+    <!-- ── PASO 1: Paquete ── -->
     <section v-if="pasoActual === 1" class="step-panel">
       <h5 class="fw-bold mb-3">Paquete y adicionales</h5>
       <div class="row g-3 mb-4">
@@ -466,12 +457,9 @@ function formatoMoneda(valor) {
           </select>
         </div>
       </div>
-
       <div class="adicional-grid">
         <label v-for="adicional in adicionalesDisponibles" :key="adicionalId(adicional)" class="adicional-card">
-          <input
-            type="checkbox"
-            class="form-check-input"
+          <input type="checkbox" class="form-check-input"
             :checked="form.adicionales.includes(adicionalId(adicional))"
             :disabled="!form.paquetes_id"
             @change="alternarAdicional(adicionalId(adicional))"
@@ -486,6 +474,7 @@ function formatoMoneda(valor) {
       </div>
     </section>
 
+    <!-- ── PASO 2: Beneficiarios ── -->
     <section v-if="pasoActual === 2" class="step-panel">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="fw-bold mb-0">Beneficiarios</h5>
@@ -494,17 +483,12 @@ function formatoMoneda(valor) {
         </button>
       </div>
       <div v-if="errores.beneficiarios" class="alert alert-danger">{{ errores.beneficiarios }}</div>
-
       <div v-for="(beneficiario, index) in form.beneficiarios" :key="index" class="beneficiario-panel">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <strong>Beneficiario {{ index + 1 }}</strong>
           <div class="d-flex gap-2">
-            <button type="button" class="btn btn-sm btn-outline-secondary" @click="usarClienteComoBeneficiario(index)">
-              Usar titular
-            </button>
-            <button type="button" class="btn btn-sm btn-outline-danger" @click="quitarBeneficiario(index)" :disabled="form.beneficiarios.length === 1">
-              Quitar
-            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" @click="usarClienteComoBeneficiario(index)">Usar titular</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" @click="quitarBeneficiario(index)" :disabled="form.beneficiarios.length === 1">Quitar</button>
           </div>
         </div>
         <div class="row g-3">
@@ -542,6 +526,7 @@ function formatoMoneda(valor) {
       </div>
     </section>
 
+    <!-- ── PASO 3: Cobro ── -->
     <section v-if="pasoActual === 3" class="step-panel">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="fw-bold mb-0">Direccion de cobro</h5>
@@ -578,6 +563,7 @@ function formatoMoneda(valor) {
       </div>
     </section>
 
+    <!-- ── PASO 4: Confirmar ── -->
     <section v-if="pasoActual === 4" class="step-panel">
       <h5 class="fw-bold mb-3">Resumen</h5>
       <div class="resumen-grid">
@@ -608,16 +594,11 @@ function formatoMoneda(valor) {
       </div>
     </section>
 
+    <!-- ── NAVEGACIÓN ── -->
     <div class="acciones mt-4">
-      <button type="button" class="btn btn-outline-secondary" @click="cancelar" :disabled="enviando">
-        Cancelar
-      </button>
-      <button v-if="pasoActual > 0" type="button" class="btn btn-outline-secondary" @click="anterior" :disabled="enviando">
-        Anterior
-      </button>
-      <button v-if="pasoActual < pasos.length - 1" type="button" class="btn btn-custom" @click="siguiente">
-        Siguiente
-      </button>
+      <button type="button" class="btn btn-outline-secondary" @click="cancelar" :disabled="enviando">Cancelar</button>
+      <button v-if="pasoActual > 0" type="button" class="btn btn-outline-secondary" @click="anterior" :disabled="enviando">Anterior</button>
+      <button v-if="pasoActual < pasos.length - 1" type="button" class="btn btn-custom" @click="siguiente">Siguiente</button>
       <button v-else type="button" class="btn btn-custom" @click="guardar" :disabled="enviando">
         <span v-if="enviando" class="spinner-border spinner-border-sm me-2"></span>
         {{ enviando ? 'Guardando...' : 'Guardar contrato' }}
@@ -627,72 +608,84 @@ function formatoMoneda(valor) {
 </template>
 
 <style scoped>
-.stepper {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
+/* ── Stepper visual ── */
+.stepper-wrap {
+  position: relative;
+  padding: 0 24px;
 }
-
-.step {
-  border: 1px solid #d8e4eb;
-  background: #fff;
-  border-radius: 8px;
-  padding: 10px;
-  color: var(--primary);
-  font-weight: 600;
+.stepper-line-bg {
+  position: absolute;
+  top: 19px;
+  left: 48px;
+  right: 48px;
+  height: 3px;
+  background: #e0e0e0;
+  border-radius: 2px;
+}
+.stepper-line-fill {
+  position: absolute;
+  top: 19px;
+  left: 48px;
+  height: 3px;
+  background: var(--primary, #2F4156);
+  border-radius: 2px;
+  transition: width 0.45s ease;
+  max-width: calc(100% - 96px);
+}
+.stepper-nodes {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+}
+.stepper-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.node-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  font-size: 15px;
+  font-weight: 500;
+  background: #fff;
+  transition: all 0.35s ease;
+}
+.node-inactivo  { border: 2px solid #ccc; color: #999; }
+.node-activo    { border: 2px solid var(--primary, #2F4156); color: var(--primary, #2F4156); box-shadow: 0 0 0 4px rgba(47,65,86,0.12); }
+.node-completado { background: var(--primary, #2F4156); border: 2px solid var(--primary, #2F4156); color: #fff; }
+.node-label {
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  max-width: 80px;
 }
 
-.step span {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #edf2f5;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-}
-
-.step.activo,
-.step.completo {
-  border-color: var(--secondary);
-  background: #f1f7fa;
-}
-
-.step.activo span,
-.step.completo span {
-  background: var(--secondary);
-  color: #fff;
-}
-
+/* ── Resto del componente (sin cambios) ── */
 .step-panel {
   border: 1px solid #e5edf2;
   border-radius: 8px;
   padding: 18px;
   background: #fff;
 }
-
 .btn-filtro {
   border: 1.5px solid var(--secondary);
   color: var(--secondary);
   background: #fff;
 }
-
 .btn-filtro.activo {
   background: var(--secondary);
   color: #fff;
 }
-
 .adicional-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: 12px;
 }
-
 .adicional-card {
   border: 1px solid #e5edf2;
   border-radius: 8px;
@@ -702,46 +695,36 @@ function formatoMoneda(valor) {
   gap: 10px;
   cursor: pointer;
 }
-
 .beneficiario-panel {
   border: 1px solid #e5edf2;
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 14px;
 }
-
 .resumen-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
 }
-
 .resumen-grid div {
   border: 1px solid #e5edf2;
   border-radius: 8px;
   padding: 12px;
 }
-
 .resumen-grid span {
   display: block;
   color: #667085;
   font-size: 0.82rem;
   font-weight: 600;
 }
-
 .acciones {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 }
-
 @media (max-width: 768px) {
-  .stepper {
-    grid-template-columns: 1fr;
-  }
-
-  .acciones {
-    flex-wrap: wrap;
-  }
+  .stepper-nodes { flex-wrap: wrap; gap: 12px; }
+  .stepper-line-bg, .stepper-line-fill { display: none; }
+  .acciones { flex-wrap: wrap; }
 }
 </style>
